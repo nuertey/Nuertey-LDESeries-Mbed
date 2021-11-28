@@ -1,38 +1,68 @@
-# Nuertey-SCL3300-Mbed - Type-Driven SPI Framing Protocol For Murata Manufacturing Co. Ltd.'s SCL3300 3-Axis Inclinometer.
+# Nuertey-LDESeries-Mbed - Type-Driven SPI Framing Protocol For First Sensor LDE Series Low Pressure Sensor.
 
-SCL3300 - 3-axis inclinometer with angle output and digital SPI interface. 
+This sensor driver is targetted for the ARM Mbed platform and encapsulates the digital SPI interface and accompanying protocol as presented by the LDE Series of low pressure sensors.
 
-This sensor driver is targetted for the ARM Mbed platform. For ease of use, power, flexibility and readability of the code, the protocol has been written in a modern C++ (C++17/C++20) metaprogrammed and templatized class-encapsulated idiom. 
+For ease of use, power, flexibility and readability of the code, the protocol has been written in a modern C++ (C++20) metaprogrammed and templatized class-encapsulated idiom. 
 
-A goal of the design is to encourage and promote zero-cost abstractions, even and especially so, in the embedded realms. Note that care has been taken to deduce and glean those abstractions from the problem-domain itself. And in the doing so, care has also been taken to shape the abstractions logically.
+A goal of the design is to encourage and promote zero-cost abstractions, even and especially so, in the embedded realms. Note that care has been taken to deduce and glean those abstractions from the problem-domain itself. And in the doing so, care has also been taken to shape the abstractions logically. 
 
-![SCL3300 Sensor Driver Class Diagram](https://github.com/nuertey/RandomArtifacts/blob/master/NuerteySCL3300Device2.png?raw=true)
+From its datasheet, the First Sensor LDE Series sensor is characterized as:
 
-The SCL3300 is targeted at applications demanding high stability and accuracy with tough environmental requirements. Typical applications would include:
+"The LDE differential low pressure sensors are based on thermal flow measurement of gas through a micro-flow channel integrated within the sensor chip. The innovative LDE technology features superior sensitivity especially for ultra low pressures. The extremely low gas flow through the sensor ensures high immunity to dust contamination, humidity and long tubing compared to other flow-based pressure sensors."
+
+- https://www.first-sensor.com/cms/upload/datasheets/DS_Standard-LDE_E_11815.pdf
+
+![LDE Series Sensor Driver Class Diagram](https://github.com/nuertey/RandomArtifacts/blob/master/NuerteySCL3300Device2.png?raw=true)
+
+Quoting the above datasheet further:
  
-  - Leveling
-  - Tilt sensing
-  - Machine control
-  - Structural health monitoring
-  - Inertial measurement units (IMUs)
-  - Robotics
-  - Positioning and guidance system
+    Features
  
-Key features of the sensor are as follows:
+     – Ultra-low pressure ranges from 25 to 500 Pa (0.1 to 2 in H2O) 
+     – Pressure sensor based on thermal microflow measurement
+     – High flow impedance
+     – very low flow-through leakage
+     – high immunity to dust and humidity
+     – no loss in sensitivity using long tubing
+     – Calibrated and temperature compensated
+     – Unique offset autozeroing feature ensuring superb long-term stability
+     – Offset accuracy better than 0.2% FS
+     – Total accuracy better than 0.5% FS typical
+     – On-chip temperature sensor
+     – Analog output and digital SPI interface
+     – No position sensitivity
  
-  - 3-axis (XYZ) inclinometer
-  - User selectable measurement modes:
-    - 3000 LSB/g with 70 Hz LPF
-    - 6000 LSB/g with 40 Hz LPF
-    - 12000 LSB/g with 10 Hz LPF
-  - Angle output resolution 0.0055°/LSB
-  - −40°C…+125°C operating range
-  - 3.0V…3.6V supply voltage
-  - SPI digital interface
-  - Ultra-low 0.001 °/√Hz noise density
-  - Excellent offset stability
-  - Size 8.6 x 7.6 x 3.3 mm (l × w × h)
-  - Proven capacitive 3D-MEMS technology
+   Certificates
+ 
+     – Quality Management System according to EN ISO 13485 and EN ISO 9001
+     – RoHS and REACH compliant
+ 
+   Media compatibility
+ 
+     – Air and other non-corrosive gases
+ 
+   Applications
+ 
+     Medical
+     – Ventilators
+     – Spirometers
+     – CPAP
+     – Sleep diagnostic equipment
+     – Nebulizers
+     – Oxygen conservers/concentrators
+     – Insufflators/endoscopy
+ 
+     Industrial
+     – HVAC
+     – VAV
+     – Filter monitoring
+     – Burner control
+     – Fuel cells
+     – Gas leak detection
+     – Gas metering
+     – Fume hood
+     – Instrumentation
+     – Security systems
 
 ## DEPENDENCIES - CODING LANGUAGE/OS/COMPILATION TARGET/COMPILER:
   - C++20
