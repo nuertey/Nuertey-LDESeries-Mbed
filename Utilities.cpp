@@ -1,17 +1,4 @@
-/****************************************************************************
-* @file
-*
-* Assays... i.e. keeping busy and trying out new ideas.
-*
-* @note
-*
-* @warning
-*
-*  Created: October 16, 2018
-*   Author: Nuertey Odzeyem
-******************************************************************************/
 #include "Utilities.h"
-#include "mbed.h"
 
 namespace Utilities
 {

@@ -3,9 +3,11 @@
 *
 *    This sensor driver is targetted for the ARM Mbed platform and 
 *    encapsulates the digital SPI interface and accompanying protocol 
-*    as presented by the LDE Series of low pressure sensors. 
+*    as presented by the LDE Series of digital low differential pressure
+*    sensors. 
 * 
-*    From its datasheet, the LDE Series sensor is characterized as:
+*    From its datasheet, the First Sensor LDE Series sensor is 
+*    characterized as:
 * 
 *    "The LDE differential low pressure sensors are based on thermal flow
 *    measurement of gas through a micro-flow channel integrated within 
@@ -86,8 +88,94 @@
 //
 // https://www.first-sensor.com/cms/upload/datasheets/DS_Standard-LDE_E_11815.pdf
 
-#include <system_error>
+// \"
+// Pressure sensor characteristics
+// 
+// Part no.     Operating pressure                       Proof pressure (5) Burst pressure (5)
+//                                                                          
+// LDES025U...  0...25 Pa / 0...0.25 mbar (0.1 inH2O)                       
+// LDES050U...  0...50 Pa / 0...0.5 mbar (0.2 inH2O)                        
+// LDES100U...  0...100 Pa / 0...1 mbar (0.4 inH2O)                         
+// LDES250U...  0...250 Pa / 0...2.5 mbar (1 inH2O)                         
+// LDES500U...  0...500 Pa / 0...5 mbar (2 inH2O)        2 bar (30 psi)     5 bar (75 psi)
+// LDES025B...  0...±25 Pa / 0...±0.25 mbar (±0.1 inH2O)
+// LDES050B...  0...±50 Pa / 0...±0.5 mbar (±0.2 inH2O)
+// LDES100B...  0...±100 Pa / 0...±1 mbar (±0.4 inH2O)
+// LDES250B...  0...±250 Pa / 0...±2.5 mbar (±1 inH2O)
+// LDES500B...  0...±500 Pa / 0...±5 mbar (±2 inH2O)
+//
+// ...
+//
+// (5) The max. common mode pressure is 5 bar. \"
 
+// \"
+// Gas correction factors (6)
+//
+// Gas type                Correction factor
+//
+// Dry air                 1.0
+// Oxygen (O2)             1.07
+// Nitrogen (N2)           0.97
+// Argon (Ar)              0.98
+// Carbon dioxide (CO2)    0.56
+//
+// ...
+//
+// (6) For example with a LDES500... sensor measuring CO2 gas, at full-scale output
+// the actual pressure will be:
+//
+// ΔPeff = ΔPSensor x gas correction factor = 500 Pa x 0.56 = 280 Pa
+//
+// ΔPeff = True differential pressure
+// ΔP Sensor= Differential pressure as indicated by output signal
+// \"
+
+// \"
+// LDE...6... Performance characteristics (7)
+//
+// (VS=5.0 VDC, TA=20 °C, PAbs=1 bara, calibrated in air, analog and 
+// digital output signals are non-ratiometric to VS)
+//
+// 25 Pa and 50 Pa devices
+//
+// ...
+//
+// Power-on time 25 ms.
+//
+// ...
+//
+// (7) The sensor is calibrated with a common mode pressure of 1 bar absolute. 
+// Due to the mass flow based measuring principle, variations in absolute common
+// mode pressure need to be compensated according to the following formula:
+//
+// ΔPeff = ΔPSensor x 1 bara/Pabs
+//
+// ΔPeff = True differential pressure
+// ΔPSensor = Differential pressure as indicated by output voltage
+// Pabs = Current absolute common mode pressure
+//
+// ...
+// 
+// Digital output
+//
+// Parameter                                             Typ.  Unit
+//
+// Scale factor (digital output) (10) 0...25/0...±25 Pa  1200  counts/Pa
+//                                    0...50/0...±50 Pa   600  counts/Pa
+// ...
+//
+// (10) The digital output signal is a signed, two complement integer.
+// Negative pressures will result in a negative output. \"
+
+
+// \"
+// SPI – Serial Peripheral Interface
+//
+// Note: it is important to adhere to the communication protocol in 
+// order to avoid damage to the sensor.
+// \"
+
+#include <system_error>
 #include "Protocol.h" 
 
 using namespace Utilities;

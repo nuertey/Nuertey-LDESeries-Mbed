@@ -28,30 +28,19 @@
 ***********************************************************************/
 #pragma once
 
-// Note that from hence, relevant sections of the 'datasheet_scl3300-d01.pdf'
+/// Note that from hence, relevant sections of the 'DS_Standard-LDE_E_11815.pdf'
 // are appropriately quoted (\" ... \") as needed. These are intended to
-// serve as a sort of Customer requirement repository or to evidence 
+// serve as a sort of Customer requirement repository and to evidence 
 // traceability.
 //
-// https://www.murata.com/-/media/webrenewal/products/sensor/pdf/datasheet/datasheet_scl3300-d01.ashx?la=en-sg
+// https://www.first-sensor.com/cms/upload/datasheets/DS_Standard-LDE_E_11815.pdf
 
-// The C++ Standard Template Libraries (STL):
 #include <span> // std::span (C++20) is a safer alternative to separated pointer/size.
-#include <array>
-#include <tuple>
 #include <bitset>
-#include <limits>
-#include <utility>
 #include <cmath>
-#include <cstdint>
-#include <cstddef>
-#include <cassert>
-#include <type_traits>
 
 #include "Utilities.h"
 
-// Can also simply set it to 8.
-//constexpr size_t NUMBER_OF_BITS = std::numeric_limits<unsigned char>::digits;
 constexpr size_t NUMBER_OF_BITS = 8;
 
 // \" SCL3300 SPI is a 32-bit 4-wire slave configured bus. \"

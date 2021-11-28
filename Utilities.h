@@ -42,7 +42,8 @@
 #include <tuple>
 #include <string>
 #include <chrono>
-#include "jwt-mbed.h"
+
+#include "picojson.h"
 #include "nsapi_types.h"
 #include "EthernetInterface.h"
 #include "MQTTClient.h"

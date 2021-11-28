@@ -1,6 +1,6 @@
-# Nuertey-LDESeries-Mbed - Type-Driven SPI Framing Protocol For First Sensor LDE Series Low Pressure Sensor.
+# Nuertey-LDESeries-Mbed - Type-Driven SPI Framing Protocol For First Sensor LDE Series Low Pressure Sensor
 
-This sensor driver is targetted for the ARM Mbed platform and encapsulates the digital SPI interface and accompanying protocol as presented by the LDE Series of low pressure sensors.
+This sensor driver is targetted for the ARM Mbed platform and encapsulates the digital SPI interface and accompanying protocol as presented by the LDE Series of digital low differential pressure sensors.
 
 For ease of use, power, flexibility and readability of the code, the protocol has been written in a modern C++ (C++20) metaprogrammed and templatized class-encapsulated idiom. 
 
