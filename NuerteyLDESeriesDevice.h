@@ -93,16 +93,16 @@
 // 
 // Part no.     Operating pressure                       Proof pressure (5) Burst pressure (5)
 //                                                                          
-// LDES025U...  0...25 Pa / 0...0.25 mbar (0.1 inH2O)                       
-// LDES050U...  0...50 Pa / 0...0.5 mbar (0.2 inH2O)                        
-// LDES100U...  0...100 Pa / 0...1 mbar (0.4 inH2O)                         
-// LDES250U...  0...250 Pa / 0...2.5 mbar (1 inH2O)                         
-// LDES500U...  0...500 Pa / 0...5 mbar (2 inH2O)        2 bar (30 psi)     5 bar (75 psi)
-// LDES025B...  0...±25 Pa / 0...±0.25 mbar (±0.1 inH2O)
-// LDES050B...  0...±50 Pa / 0...±0.5 mbar (±0.2 inH2O)
-// LDES100B...  0...±100 Pa / 0...±1 mbar (±0.4 inH2O)
-// LDES250B...  0...±250 Pa / 0...±2.5 mbar (±1 inH2O)
-// LDES500B...  0...±500 Pa / 0...±5 mbar (±2 inH2O)
+// LDES025U...  0...25 Pa / 0...0.25 mbar (0.1 in H2O)                       
+// LDES050U...  0...50 Pa / 0...0.5 mbar (0.2 in H2O)                        
+// LDES100U...  0...100 Pa / 0...1 mbar (0.4 in H2O)                         
+// LDES250U...  0...250 Pa / 0...2.5 mbar (1 in H2O)                         
+// LDES500U...  0...500 Pa / 0...5 mbar (2 in H2O)        2 bar (30 psi)     5 bar (75 psi)
+// LDES025B...  0...±25 Pa / 0...±0.25 mbar (±0.1 in H2O)
+// LDES050B...  0...±50 Pa / 0...±0.5 mbar (±0.2 in H2O)
+// LDES100B...  0...±100 Pa / 0...±1 mbar (±0.4 in H2O)
+// LDES250B...  0...±250 Pa / 0...±2.5 mbar (±1 in H2O)
+// LDES500B...  0...±500 Pa / 0...±5 mbar (±2 in H2O)
 //
 // ...
 //
@@ -536,6 +536,18 @@ inline std::string ToString(const CommandRegisterValue_t & key)
 }
 
 // =====================================================================
+
+// Metaprogramming types to distinguish particular sensor incarnations:
+struct LDE_S025_U_t {};
+struct LDE_S050_U_t {};
+struct LDE_S100_U_t {};
+struct LDE_S250_U_t {};
+struct LDE_S500_U_t {};
+struct LDE_S025_B_t {};
+struct LDE_S050_B_t {};
+struct LDE_S100_B_t {};
+struct LDE_S250_B_t {};
+struct LDE_S500_B_t {};
 
 // Metaprogramming types to distinguish sensor temperature scales:
 struct Celsius_t {};
