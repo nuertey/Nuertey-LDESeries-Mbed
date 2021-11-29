@@ -167,7 +167,6 @@
 // (10) The digital output signal is a signed, two complement integer.
 // Negative pressures will result in a negative output. \"
 
-
 // \"
 // SPI – Serial Peripheral Interface
 //
@@ -217,399 +216,7 @@ using namespace ProtocolDefinitions;
 // \"
 // =====================================================================
 
-enum class [[nodiscard]] SensorStatus_t : int8_t
-{
-    SUCCESS                                                  =   0,
-    
-    // Should never happen due to provision of proactive static assert,
-    // ProtocolDefinitions::AssertValidSPICommandFrame<T>(). Still, 
-    // trying to be comprehensive. 
-    ERROR_INVALID_COMMAND_FRAME                              =  -1, 
-                                                                
-    ERROR_INCORRECT_NUMBER_OF_BYTES_WRITTEN                  =  -2,
-    ERROR_COMMUNICATION_FAILURE_BAD_CHECKSUM                 =  -3,
-    ERROR_INVALID_RESPONSE_FRAME                             =  -4,
-    ERROR_OPCODE_READ_WRITE_MISMATCH                         =  -5,
-    ERROR_RETURN_STATUS_STARTUP_IN_PROGRESS                  =  -6,
-    ERROR_RETURN_STATUS_SELF_TEST_RUNNING                    =  -7,
-    ERROR_RETURN_STATUS_ERROR_FLAGS_ACTIVE                   =  -8,
-    ERROR_STO_SIGNAL_EXCEEDS_THRESHOLD                       =  -9,
-    
-    // \" Component failure can be suspected if the STO signal exceeds
-    // the threshold level continuously after performing component hard
-    // reset in static (no vibration) condition. \"
-    ERROR_STO_SIGNAL_COMPONENT_FAILURE_DETECTED              = -10,
-    
-    ERROR_STATUS_REGISTER_PIN_CONTINUITY                     = -11,
-    ERROR_STATUS_REGISTER_MODE_CHANGED                       = -12,
-    ERROR_STATUS_REGISTER_DEVICE_POWERED_DOWN                = -13,
-    ERROR_STATUS_REGISTER_NON_VOLATILE_MEMORY_ERRORED        = -14,
-    ERROR_STATUS_REGISTER_SAFE_VOLTAGE_LEVELS_EXCEEDED       = -15,
-    ERROR_STATUS_REGISTER_TEMPERATURE_SIGNAL_PATH_SATURATED  = -16,
-    ERROR_STATUS_REGISTER_ACCELERATION_SIGNAL_PATH_SATURATED = -17,
-    ERROR_STATUS_REGISTER_CLOCK_ERRORED                      = -18,
-    ERROR_STATUS_REGISTER_DIGITAL_BLOCK_ERRORED_TYPE_2       = -19,
-    ERROR_STATUS_REGISTER_DIGITAL_BLOCK_ERRORED_TYPE_1       = -20   
-};
-
-// Register for implicit conversion to error_code:
-//
-// For the SensorStatus_t enumerators to be usable as error_code constants,
-// enable the conversion constructor using the is_error_code_enum type trait:
-namespace std
-{
-    template <>
-    struct is_error_code_enum<SensorStatus_t> : std::true_type {};
-}
-
-class SCL3300ErrorCategory : public std::error_category
-{
-public:
-    virtual const char* name() const noexcept override;
-    virtual std::string message(int ev) const override;
-};
-
-const char* SCL3300ErrorCategory::name() const noexcept
-{
-    return "SCL3300-Sensor-Mbed";
-}
-
-std::string SCL3300ErrorCategory::message(int ev) const
-{
-    switch (ToEnum<SensorStatus_t>(ev))
-    {
-        case SensorStatus_t::SUCCESS:
-            return "Success - no errors";
-            
-        case SensorStatus_t::ERROR_INVALID_COMMAND_FRAME:
-            return "SPI Command Frame invalid or has incorrect frame CRC";
-
-        case SensorStatus_t::ERROR_INCORRECT_NUMBER_OF_BYTES_WRITTEN:
-            return "SPI Command Frame - Incorrect number of bytes transmitted";
-
-        case SensorStatus_t::ERROR_COMMUNICATION_FAILURE_BAD_CHECKSUM:
-            return "SPI Response Frame checksum failure";
-
-        case SensorStatus_t::ERROR_INVALID_RESPONSE_FRAME:
-            return "SPI Response Frame Opcode ADDRESS does NOT match transmitted command frame";
-
-        case SensorStatus_t::ERROR_OPCODE_READ_WRITE_MISMATCH:
-            return "SPI Response Frame Opcode READ/WRITE does NOT match transmitted command frame";
-
-        case SensorStatus_t::ERROR_RETURN_STATUS_STARTUP_IN_PROGRESS:
-            return "Return Status indicates Startup is in progress";
-
-        case SensorStatus_t::ERROR_RETURN_STATUS_SELF_TEST_RUNNING:
-            return "Return Status indicates Self-Test is running";            
-            
-        case SensorStatus_t::ERROR_RETURN_STATUS_ERROR_FLAGS_ACTIVE:
-            return "Error flag (or flags) are active in Status Summary register";
-            
-        case SensorStatus_t::ERROR_STO_SIGNAL_EXCEEDS_THRESHOLD:
-            return "Self-Test Output signal exceeds threshold";
-
-        case SensorStatus_t::ERROR_STO_SIGNAL_COMPONENT_FAILURE_DETECTED:
-            return "Component failure - STO signal has exceeded threshold multiple times";
-
-        case SensorStatus_t::ERROR_STATUS_REGISTER_PIN_CONTINUITY:
-            return "Component internal connection error";
-
-        case SensorStatus_t::ERROR_STATUS_REGISTER_MODE_CHANGED:
-            return "Operation mode changed - If unrequested, SW or HW reset needed";
-
-        case SensorStatus_t::ERROR_STATUS_REGISTER_DEVICE_POWERED_DOWN:
-            return "Device in powered down mode - SW or HW reset needed";
-
-        case SensorStatus_t::ERROR_STATUS_REGISTER_NON_VOLATILE_MEMORY_ERRORED:
-            return "Error in non-volatile memory - SW or HW reset needed";
-
-        case SensorStatus_t::ERROR_STATUS_REGISTER_SAFE_VOLTAGE_LEVELS_EXCEEDED:
-            return "Start-up indication or External voltage levels too extreme - SW or HW reset needed";  
-            
-        case SensorStatus_t::ERROR_STATUS_REGISTER_TEMPERATURE_SIGNAL_PATH_SATURATED:
-            return "Temperature signal path saturated - External temperatures too extreme";
-
-        case SensorStatus_t::ERROR_STATUS_REGISTER_ACCELERATION_SIGNAL_PATH_SATURATED:
-            return "Acceleration signal path saturated - Acceleration too high! Readings not usable";
-
-        case SensorStatus_t::ERROR_STATUS_REGISTER_CLOCK_ERRORED:
-            return "Clock error - SW or HW reset needed";
-
-        case SensorStatus_t::ERROR_STATUS_REGISTER_DIGITAL_BLOCK_ERRORED_TYPE_2:
-            return "Digital block error type 2 - SW or HW reset needed";
-
-        case SensorStatus_t::ERROR_STATUS_REGISTER_DIGITAL_BLOCK_ERRORED_TYPE_1:
-            return "Digital block error type 1 - SW or HW reset needed";   
-                        
-        default:
-            return "(unrecognized error)";
-    }
-}
-
-inline const std::error_category& scl3300_error_category()
-{
-    static SCL3300ErrorCategory instance;
-    return instance;
-}
-
-inline auto make_error_code(SensorStatus_t e)
-{
-    return std::error_code(ToUnderlyingType(e), scl3300_error_category());
-}
-
-inline auto make_error_condition(SensorStatus_t e)
-{
-    return std::error_condition(ToUnderlyingType(e), scl3300_error_category());
-}
-
-// =====================================================================
-enum class ErrorFlag1Reason_t : uint16_t
-{
-    SUCCESS_NO_ERROR =     0,
-    MEM              =     1,
-    AFE_SAT_BIT_1    =     2,
-    AFE_SAT_BIT_2    =     4,
-    AFE_SAT_BIT_3    =     8,
-    AFE_SAT_BIT_4    =    16,
-    AFE_SAT_BIT_5    =    32,
-    AFE_SAT_BIT_6    =    64,
-    AFE_SAT_BIT_7    =   128,
-    AFE_SAT_BIT_8    =   256,
-    AFE_SAT_BIT_9    =   512,
-    AFE_SAT_BIT_10   =  1024,
-    ADC_SAT          =  2048,
-    RESERVED_1       =  4096,
-    RESERVED_2       =  8192,
-    RESERVED_3       = 16384,
-    RESERVED_4       = 32768
-};
-
-using ErrorFlag1ReasonMap_t = std::map<ErrorFlag1Reason_t, std::string>;
-using IndexElementFlag1_t   = ErrorFlag1ReasonMap_t::value_type;
-
-inline static auto make_error_flag1_reason_map()
-{
-    ErrorFlag1ReasonMap_t rMap;
-    
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::SUCCESS_NO_ERROR, std::string("\"No errors present\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::MEM, std::string("\"Error in non-volatile memory\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::AFE_SAT_BIT_1, std::string("\"Signal saturated at C2V - Bit 1\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::AFE_SAT_BIT_2, std::string("\"Signal saturated at C2V - Bit 2\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::AFE_SAT_BIT_3, std::string("\"Signal saturated at C2V - Bit 3\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::AFE_SAT_BIT_4, std::string("\"Signal saturated at C2V - Bit 4\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::AFE_SAT_BIT_5, std::string("\"Signal saturated at C2V - Bit 5\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::AFE_SAT_BIT_6, std::string("\"Signal saturated at C2V - Bit 6\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::AFE_SAT_BIT_7, std::string("\"Signal saturated at C2V - Bit 7\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::AFE_SAT_BIT_8, std::string("\"Signal saturated at C2V - Bit 8\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::AFE_SAT_BIT_9, std::string("\"Signal saturated at C2V - Bit 9\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::AFE_SAT_BIT_10, std::string("\"Signal saturated at C2V - Bit 10\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::ADC_SAT, std::string("\"Signal saturated at A2D\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::RESERVED_1, std::string("\"Reserved - Bit 1\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::RESERVED_2, std::string("\"Reserved - Bit 2\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::RESERVED_3, std::string("\"Reserved - Bit 3\"")));
-    rMap.insert(IndexElementFlag1_t(ErrorFlag1Reason_t::RESERVED_4, std::string("\"Reserved - Bit 4\"")));
-
-    return rMap;
-}
-
-static ErrorFlag1ReasonMap_t gs_ErrorFlag1ReasonMap = make_error_flag1_reason_map();
-
-inline std::string ToString(const ErrorFlag1Reason_t & key)
-{
-    return (gs_ErrorFlag1ReasonMap.at(key));
-}
-
-// =====================================================================
-enum class ErrorFlag2Reason_t : uint16_t
-{
-    SUCCESS_NO_ERROR =     0,
-    CLK              =     1,
-    TEMP_SAT         =     2,
-    APWR_2           =     4,
-    VREF             =     8,
-    DPWR             =    16,
-    APWR             =    32,
-    RESERVED_6       =    64,
-    MEMORY_CRC       =   128,
-    PD               =   256,
-    MODE_CHANGE      =   512,
-    RESERVED_10      =  1024,
-    VDD              =  2048,
-    AGND             =  4096,
-    A_EXT_C          =  8192,
-    D_EXT_C          = 16384,
-    RESERVED_15      = 32768
-};
-
-using ErrorFlag2ReasonMap_t = std::map<ErrorFlag2Reason_t, std::string>;
-using IndexElementFlag2_t   = ErrorFlag2ReasonMap_t::value_type;
-
-inline static auto make_error_flag2_reason_map()
-{
-    ErrorFlag2ReasonMap_t rMap;
-    
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::SUCCESS_NO_ERROR, std::string("\"No errors present\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::CLK, std::string("\"Clock error\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::TEMP_SAT, std::string("\"Temperature signal path saturated\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::APWR_2, std::string("\"Analog power error 2\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::VREF, std::string("\"Reference voltage error\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::DPWR, std::string("\"Digital power error - SW or HW reset needed\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::APWR, std::string("\"Analog power error\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::RESERVED_6, std::string("\"Reserved - Bit 6\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::MEMORY_CRC, std::string("\"Memory CRC check failed\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::PD, std::string("\"Device in power down mode\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::MODE_CHANGE, std::string("\"Operation mode changed by user\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::RESERVED_10, std::string("\"Reserved - Bit 10\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::VDD, std::string("\"Supply voltage error\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::AGND, std::string("\"Analog ground connection error\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::A_EXT_C, std::string("\"A - External capacitor connection error\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::D_EXT_C, std::string("\"D - External capacitor connection error\"")));
-    rMap.insert(IndexElementFlag2_t(ErrorFlag2Reason_t::RESERVED_15, std::string("\"Reserved - Bit 15\"")));
-
-    return rMap;
-}
-
-static ErrorFlag2ReasonMap_t gs_ErrorFlag2ReasonMap = make_error_flag2_reason_map();
-
-inline std::string ToString(const ErrorFlag2Reason_t & key)
-{
-    return (gs_ErrorFlag2ReasonMap.at(key));
-}
-
-// =====================================================================
-enum class CommandRegisterValue_t : uint16_t
-{
-    MODE_1              =     0,
-    MODE_2              =     1,
-    MODE_3              =     2,
-    MODE_4              =     3,
-    PD                  =     4,
-    FACTORY_USE_BIT_3   =     8,
-    FACTORY_USE_BIT_4   =    16,
-    SW_RST              =    32,
-    FACTORY_USE_BIT_6   =    64,
-    FACTORY_USE_BIT_7   =   128,
-    RESERVED_BIT_8      =   256,
-    RESERVED_BIT_9      =   512,
-    RESERVED_BIT_10     =  1024,
-    RESERVED_BIT_11     =  2048,
-    RESERVED_BIT_12     =  4096,
-    RESERVED_BIT_13     =  8192,
-    RESERVED_BIT_14     = 16384,
-    RESERVED_BIT_15     = 32768
-};
-
-using CommandRegisterValueMap_t = std::map<CommandRegisterValue_t, std::string>;
-using IndexElementCommand_t     = CommandRegisterValueMap_t::value_type;
-
-inline static auto make_command_register_value_map()
-{
-    CommandRegisterValueMap_t cMap;
-
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::MODE_1, std::string("\"MODE_1 -> SCL3300 Operation Mode 1\"")));    
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::MODE_2, std::string("\"MODE_2 -> SCL3300 Operation Mode 2\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::MODE_3, std::string("\"MODE_3 -> SCL3300 Operation Mode 3\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::MODE_4, std::string("\"MODE_4 -> SCL3300 Operation Mode 4\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::PD, std::string("\"PD -> Power Down\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::FACTORY_USE_BIT_3, std::string("\"FACTORY_USE -> Factory use - Bit 3\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::FACTORY_USE_BIT_4, std::string("\"FACTORY_USE -> Factory use - Bit 4\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::SW_RST, std::string("\"SW_RST -> Software (SW) Reset\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::FACTORY_USE_BIT_6, std::string("\"FACTORY_USE -> Factory use - Bit 6\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::FACTORY_USE_BIT_7, std::string("\"FACTORY_USE -> Factory use - Bit 7\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::RESERVED_BIT_8, std::string("\"RESERVED -> Reserved - Bit 8\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::RESERVED_BIT_9, std::string("\"RESERVED -> Reserved - Bit 9\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::RESERVED_BIT_10, std::string("\"RESERVED -> Reserved - Bit 10\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::RESERVED_BIT_11, std::string("\"RESERVED -> Reserved - Bit 11\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::RESERVED_BIT_12, std::string("\"RESERVED -> Reserved - Bit 12\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::RESERVED_BIT_13, std::string("\"RESERVED -> Reserved - Bit 13\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::RESERVED_BIT_14, std::string("\"RESERVED -> Reserved - Bit 14\"")));
-    cMap.insert(IndexElementCommand_t(CommandRegisterValue_t::RESERVED_BIT_15, std::string("\"RESERVED -> Reserved - Bit 15\"")));
-
-    return cMap;
-}
-
-static CommandRegisterValueMap_t gs_CommandRegisterValueMap = make_command_register_value_map();
-
-inline std::string ToString(const CommandRegisterValue_t & key)
-{
-    return (gs_CommandRegisterValueMap.at(key));
-}
-
-// =====================================================================
-
-// Metaprogramming types to distinguish sensor temperature scales:
-struct Celsius_t {};
-struct Fahrenheit_t {};
-struct Kelvin_t {};
-
-// \" Sensor ODR in normal operation mode is 2000 Hz. Registers are updated in every
-// 0.5 ms and if all data is not read the full noise performance of sensor is not met.
-//
-// In order to achieve optimal performance, it is recommended that during normal
-// operation acceleration outputs ACCX, ACCY, ACCZ are read in every cycle using
-// sensor ODR. It is necessary to read STATUS register only if return status (RS) indicates
-// error. \"
-
-template<typename T>
-using SensorAttribute_t = std::tuple<SPICommandFrame_t, SPICommandFrame_t, T, std::string>;
-
-// Tuple to hold raw sensor data. We must ensure to populate all 
-// these each time we read a set of sensor data:
-//
-//    // Culprit register values of interest. Sourced from 
-//    // 'datasheet_scl3300-d01.pdf' section:
-//    //
-//    // /" 6.1 Sensor Data Block
-//    //
-//    // Table 18 Sensor data block description \"
-//    SensorAttribute_t<int16_t >    m_AccelerationXAxis;
-//    SensorAttribute_t<int16_t >    m_AccelerationYAxis;
-//    SensorAttribute_t<int16_t >    m_AccelerationZAxis;
-//    SensorAttribute_t<int16_t >    m_SelfTestOutput;
-//    SensorAttribute_t<int16_t >    m_Temperature;
-//    SensorAttribute_t<int16_t >    m_AngleXAxis;
-//    SensorAttribute_t<int16_t >    m_AngleYAxis;
-//    SensorAttribute_t<int16_t >    m_AngleZAxis;
-//    SensorAttribute_t<uint16_t>    m_StatusSummary;
-//    SensorAttribute_t<uint16_t>    m_WhoAmI;
-using SCL3300SensorData_t = std::tuple<SensorAttribute_t<int16_t >,
-                                       SensorAttribute_t<int16_t >,
-                                       SensorAttribute_t<int16_t >,
-                                       SensorAttribute_t<int16_t >,
-                                       SensorAttribute_t<int16_t >,
-                                       SensorAttribute_t<int16_t >,
-                                       SensorAttribute_t<int16_t >,
-                                       SensorAttribute_t<int16_t >,
-                                       SensorAttribute_t<uint16_t>,
-                                       SensorAttribute_t<uint16_t> >;
-
-// \" 6 Register Definition
-//
-// SCL3300-D01 contains two user switchable register banks. Default
-// register bank is #0.
-//
-// One should have register bank #0 always active, unless data from
-// bank #1 is required. After reading data from bank #1 is finished,
-// one should switch back to bank #0 to ensure no accidental 
-// read / writes in unwanted registers. See 6.9 SELBANK for more
-// information for selecting active register bank. Table 18 shows
-// overview of register banks and register addresses. \"
-
-// \" User should not access Reserved nor Factory Use registers.
-// Power-cycle, reset and power down mode will reset all written
-// settings. \"
-SCL3300SensorData_t g_TheSensorData{
-    std::make_tuple(SWITCH_TO_BANK_1, READ_ACCELERATION_X_AXIS, 0, std::string("READ_ACCELERATION_X_AXIS")),
-    std::make_tuple(SWITCH_TO_BANK_1, READ_ACCELERATION_Y_AXIS, 0, std::string("READ_ACCELERATION_Y_AXIS")),
-    std::make_tuple(SWITCH_TO_BANK_1, READ_ACCELERATION_Z_AXIS, 0, std::string("READ_ACCELERATION_Z_AXIS")),
-    std::make_tuple(SWITCH_TO_BANK_1, READ_SELF_TEST_OUTPUT,    0, std::string("READ_SELF_TEST_OUTPUT")),
-    std::make_tuple(SWITCH_TO_BANK_1, READ_TEMPERATURE,         0, std::string("READ_TEMPERATURE")),
-    std::make_tuple(SWITCH_TO_BANK_0, READ_ANGLE_X_AXIS,        0, std::string("READ_ANGLE_X_AXIS")),
-    std::make_tuple(SWITCH_TO_BANK_0, READ_ANGLE_Y_AXIS,        0, std::string("READ_ANGLE_Y_AXIS")),
-    std::make_tuple(SWITCH_TO_BANK_0, READ_ANGLE_Z_AXIS,        0, std::string("READ_ANGLE_Z_AXIS")),
-    std::make_tuple(SWITCH_TO_BANK_1, READ_STATUS_SUMMARY,      0, std::string("READ_STATUS_SUMMARY")),
-    std::make_tuple(SWITCH_TO_BANK_0, READ_WHO_AM_I,            0, std::string("READ_WHO_AM_I"))};
-
+template <IsLDESeriesSensorType S>
 class NuerteyLDESeriesDevice
 {        
     static constexpr uint8_t DEFAULT_BYTE_ORDER = 0;  // A value of zero indicates MSB-first.
@@ -647,6 +254,8 @@ public:
     virtual ~NuerteyLDESeriesDevice();
 
     void InitiateDataTransfer();
+    //SPIFrame_t ReadPressureData or stored as member within class, currentSPIResponse
+    double GetPressure() const;
 
     void LaunchStartupSequence();
     void LaunchNormalOperationSequence();
@@ -750,19 +359,16 @@ private:
     uint8_t                            m_ByteOrder;
     uint8_t                            m_BitsPerWord;
     uint32_t                           m_Frequency;
-    OperationMode_t                    m_InclinometerMode;
-    bool                               m_PoweredDownMode;
-    NucleoF767ZIClock_t::time_point    m_LastSPITransferTime;
 };
 
-NuerteyLDESeriesDevice::NuerteyLDESeriesDevice(PinName mosi,
-                                           PinName miso,
-                                           PinName sclk,
-                                           PinName ssel,
-                                           const uint8_t& mode,
-                                           const uint8_t& byteOrder,
-                                           const uint8_t& bitsPerWord,
-                                           const uint32_t& frequency)
+NuerteyLDESeriesDevice<S>::NuerteyLDESeriesDevice(PinName mosi,
+                                               PinName miso,
+                                               PinName sclk,
+                                               PinName ssel,
+                                               const uint8_t& mode,
+                                               const uint8_t& byteOrder,
+                                               const uint8_t& bitsPerWord,
+                                               const uint32_t& frequency)
     // The usual alternate constructor passes the SSEL pin selection to 
     // the target HAL. However, as not all MCU targets support SSEL, that 
     // constructor should NOT be relied upon in portable code. Rather, 
@@ -775,9 +381,6 @@ NuerteyLDESeriesDevice::NuerteyLDESeriesDevice(PinName mosi,
     , m_ByteOrder(byteOrder)
     , m_BitsPerWord(bitsPerWord)
     , m_Frequency(frequency)
-    , m_InclinometerMode(OperationMode_t::MODE_1) // \" (default) 1.8g full-scale 40 Hz 1st order low pass filter \"
-    , m_PoweredDownMode(false)
-    , m_LastSPITransferTime(NucleoF767ZIClock_t::now()) // Just a placeholder for construction/initialization.
 {
     // \" The LDE device runs in SPI mode 0, which requires the clock 
     // line SCLK to idle low (CPOL = 0), and for data to be sampled on
@@ -822,8 +425,18 @@ NuerteyLDESeriesDevice::NuerteyLDESeriesDevice(PinName mosi,
     set_default_write_value(reinterpret_cast<char>(LDE_SERIES_SPI_DUMMY_BYTE));
 }
 
-NuerteyLDESeriesDevice::~NuerteyLDESeriesDevice()
+NuerteyLDESeriesDevice<S>::~NuerteyLDESeriesDevice()
 {
+}
+
+void NuerteyLDESeriesDevice<S>::InitiateDataTransfer()
+{
+    
+}
+
+double NuerteyLDESeriesDevice<S>::GetPressure() const
+{
+    
 }
 
 template <typename T>

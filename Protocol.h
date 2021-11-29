@@ -96,11 +96,7 @@ concept IsLDESeriesSPIFrameType = ((std::is_integral_v<T> && (sizeof(T) == 1))
                               
 namespace ProtocolDefinitions
 {    
-    enum class MemoryBank_t : uint16_t
-    {
-        BANK_0 = 0,
-        BANK_1 = 1 
-    };
+
     
     // Another benefit of such an approach is, our ScalingFactorMap is 
     // statically generated at compile-time hence useable in constexpr
@@ -150,11 +146,6 @@ namespace ProtocolDefinitions
         constexpr auto LDE_SERIES_SCALING_FACTOR = ScalingFactorMap<S>::VALUE;        
         return LDE_SERIES_SCALING_FACTOR;
     }
-    
-    // \" 8-bit register for component identification
-    //
-    // Component ID [7:0] = C1h \"
-    constexpr uint8_t WHO_AM_I{0xC1};
     
     // \"
     // Data read – pressure
@@ -210,20 +201,13 @@ namespace ProtocolDefinitions
         }
     }
 
-    template <typename T>    
-    inline SPIMISOFrame_t<T> Deserialize(const SPICommandFrame_t& frame)
+    inline int16_t Deserialize(const SPIFrame_t& frame)
     {
-        uint8_t  operationCodeReadWrite = (frame.at(0) >> 7);
-        uint8_t  operationCodeAddress   = (frame.at(0) >> 2) & 0x1F;
-        uint8_t  returnStatusMISO       = (frame.at(0) & 0x03);
-        T        sensorData             = ((frame.at(1) << 8) | frame.at(2));
-        uint8_t  checksum               = frame.at(3);
+        // \" (10) The digital output signal is a signed, two complement
+        // integer. Negative pressures will result in a negative output. \"
+        int16_t sensorData = ((frame.at(1) << 8) | frame.at(2));
 
-        return std::make_tuple(operationCodeReadWrite, 
-                               operationCodeAddress, 
-                               returnStatusMISO,
-                               sensorData, 
-                               checksum);
+        return sensorData;
     }
     
 } // End of namespace ProtocolDefinitions.
