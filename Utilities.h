@@ -184,18 +184,6 @@ inline std::string ToString(const nsapi_size_or_error_t & key)
 {
     return (gs_ErrorCodesMap.at(key));
 }
-
-enum class TimeTopic_t
-{
-    RELATIVE_TIME,
-    ABSOLUTE_TIME   
-};
-
-enum class SocketMode_t
-{
-    BLOCKING,
-    NON_BLOCKING   
-};
     
 namespace Utilities
 {

@@ -64,6 +64,34 @@ Quoting the above datasheet further:
      – Instrumentation
      – Security systems
 
+## Sensor Type Defines and Attributes
+
+
+```c++
+// \"
+// Series     Pressure Range                    Calibration
+// 
+// LDE        S025     25 Pa (0.1 in H2O)       B Bidirectional
+//            S050     50 Pa (0.2 in H2O)       U Unidirectional
+//            S100    100 Pa (0.4 in H2O)
+//            S250    250 Pa (1 in H2O)
+//            S500    500 Pa (2 in H2O)
+// \"
+
+// Metaprogramming types to distinguish the particular LDE series 
+// pressure sensor incarnation:
+struct LDE_S025_U_t {};
+struct LDE_S050_U_t {};
+struct LDE_S100_U_t {};
+struct LDE_S250_U_t {}; // Example, LDES250UF6S. 
+struct LDE_S500_U_t {};
+struct LDE_S025_B_t {};
+struct LDE_S050_B_t {};
+struct LDE_S100_B_t {};
+struct LDE_S250_B_t {}; // Example, LDES250BF6S
+struct LDE_S500_B_t {};
+```
+
 ## DEPENDENCIES - CODING LANGUAGE/OS/COMPILATION TARGET/COMPILER:
   - C++20
   - mbed-os-6.15.1
