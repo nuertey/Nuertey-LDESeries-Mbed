@@ -101,14 +101,26 @@ struct LDE_S500_B_t {};
     - gcc-arm-none-eabi-10.3-2021.10/bin
 
 ```console 
-(py37-venv) nuertey@nuertey-PC:/.../Nuertey-SCL3300-Mbed$ mbed config -L
+(py37-venv) nuertey@nuertey-PC:/.../Nuertey-LDESeries-Mbed$ mbed config -L
 
 [mbed] Global config:
 GCC_ARM_PATH=.../opt/gcc-arm-none-eabi-10.3-2021.10/bin
 
-[mbed] Local config (/.../Nuertey-SCL3300-Mbed):
+[mbed] Local config (/.../Nuertey-LDESeries-Mbed):
 TARGET=nucleo_f767zi
 TOOLCHAIN=GCC_ARM
+
+(py37-venv) nuertey@nuertey-PC:/.../Nuertey-LDESeries-Mbed$ cd mbed-os/
+
+(py37-venv) nuertey@nuertey-PC:/.../Nuertey-LDESeries-Mbed/mbed-os$ 
+
+(py37-venv) nuertey@nuertey-PC:/.../Nuertey-LDESeries-Mbed/mbed-os$ mbed ls
+
+[mbed] Working path "/.../Nuertey-LDESeries-Mbed/mbed-os" (library)
+[mbed] Program path "/.../Nuertey-LDESeries-Mbed"
+
+mbed-os (#2eb06e762085, tags: mbed-os-6.15.1, mbed-os-6.15.1-rc1)
+
 ```
  
 ## Compilation Output (Mbed CLI 1)
@@ -157,7 +169,7 @@ Image: ./BUILD/NUCLEO_F767ZI/GCC_ARM-MY_PROFILE/Nuertey-SCL3300-Mbed.bin
 
 ## Tested Target (and Peripheral):
 
-Lacking an actual SCL3300 sensor on my workbench for testing, I am left to appeal to you OEMs or better-equipped IoT hobbyists out there. If you have a spare SCL3300 dev board that can be connected to my STM32F767-ZI [Nucleo-144], kindly send me an email at nuertey_odzeyem@hotmail.com 
+Lacking an actual LDE Series pressure sensor on my workbench for testing, I am left to appeal to you OEMs or better-equipped IoT hobbyists out there. If you have a spare LDE Series pressure sensor dev board that can be connected to my STM32F767-ZI [Nucleo-144], kindly send me an email at nuertey_odzeyem@hotmail.com 
 
 
 ## License
