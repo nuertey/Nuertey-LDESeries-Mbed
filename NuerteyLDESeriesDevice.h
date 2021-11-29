@@ -541,7 +541,7 @@ inline std::string ToString(const CommandRegisterValue_t & key)
 struct LDE_S025_U_t {};
 struct LDE_S050_U_t {};
 struct LDE_S100_U_t {};
-struct LDE_S250_U_t {};
+struct LDE_S250_U_t {}; // Example, LDES250UF6S. const int SCALE_FACTOR = 120;
 struct LDE_S500_U_t {};
 struct LDE_S025_B_t {};
 struct LDE_S050_B_t {};
@@ -821,6 +821,17 @@ NuerteyLDESeriesDevice::NuerteyLDESeriesDevice(PinName mosi,
     // void frequency(int hz = 1000000);
     m_TheSPIBus.format(m_BitsPerWord, m_Mode);
     m_TheSPIBus.frequency(m_Frequency);
+    
+    // /** Set default write data.
+    // * SPI requires the master to send some data during a read operation.
+    // * Different devices may require different default byte values.
+    // * For example: A SD Card requires default bytes to be 0xFF.
+    // *
+    // * @param data Default character to be transmitted during a read operation.
+    // */
+    // void set_default_write_value(char data);
+    
+    set_default_write_value(reinterpret_cast<char>(LDE_SERIES_SPI_DUMMY_BYTE));
 }
 
 NuerteyLDESeriesDevice::~NuerteyLDESeriesDevice()

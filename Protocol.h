@@ -61,63 +61,31 @@ using SPIMISOFrame_t    = std::tuple<uint8_t,  // Operation Code, Read/Write
 
 namespace ProtocolDefinitions
 {
-    enum class OperationCodeRW_t : uint8_t
-    {
-        READ  = 0, // Read.
-        WRITE = 1  // Write.
-    };
 
-    enum class OperationMode_t : uint8_t
-    {
-        MODE_1, // \" Acceleration output; Full Scale = ± 1.8 g \"
-        MODE_2, // \" Acceleration output; Full Scale = ± 3.6 g \"
-        MODE_3, // \" Inclination mode. Dynamic range is dependent
-                // upon orientation in gravity. \"
-        MODE_4  // \" Inclination mode. Dynamic range is dependent
-                // upon orientation in gravity. \"
-    };
-    
-    // \" SPI frame Return Status bits (RS bits) indicates the functional
-    // status of the sensor. \"
-    enum class ReturnStatus_t : uint8_t
-    {
-        STARTUP_IN_PROGRESS        = 0,
-        NORMAL_OPERATION_NO_FLAGS  = 1,
-        RESERVED_SELF_TEST_RUNNING = 2,
-        
-        // \" Error flag (or flags) are active in Status Summary register, 
-        // or previous MOSI-command had incorrect frame CRC. \" 
-        //
-        // The provision of AssertValidSPICommandFrame<T>() far below is 
-        // to ensure that the above "or" last point CANNOT occur. Hence 
-        // leaving us with only "Flags Active in Status Summary Register"
-        // as the only viable occurrence. 
-        //
-        // This coding strategy I playfully call, "Defensive 
-        // Programming Duly Portrayed". 'DPDP' :)
-        ERROR                     = 3 
-    };
     
     enum class MemoryBank_t : uint16_t
     {
         BANK_0 = 0,
         BANK_1 = 1 
     };
-
-    constexpr EightBits_t  RESERVED_BYTE{0};
-    constexpr uint8_t      RESERVED_BYTE_GROUP{0x00};
+    
+    constexpr uint8_t LDE_SERIES_SPI_DUMMY_BYTE{0xFF}; // ??? 0x00?
+    
+    template<typename T>
+    constexpr double GetScalingFactor()
+    {
+        if constexpr ()
+        {
+            constexpr double LDE_SERIES_SCALING_FACTOR{120};
+            
+            return LDE_SERIES_SCALING_FACTOR;
+        }
+    }
     
     // \" 8-bit register for component identification
     //
     // Component ID [7:0] = C1h \"
-    constexpr uint8_t      WHO_AM_I{0xC1};
-    
-    // Note that C++20 allows constexpr std::string. Further note that
-    // C++17 and later allows constexpr std::string_view. Therefore be 
-    // more inclusive by instantiating what the older standard allows.
-
-    // \" 3. Add letters “B33” to end \"
-    //constexpr std::string  SERIAL_NUMBER_SUFFIX{"B33"};
+    constexpr uint8_t WHO_AM_I{0xC1};
     
     constexpr SPICommandFrame_t RETURN_STATUS_MASK{0x03, 0x00, 0x00, 0x00};
     
