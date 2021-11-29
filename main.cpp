@@ -85,7 +85,9 @@
 //        PinName miso
 //        PinName sclk
 //        PinName ssel
-NuerteySCL3300Device g_SCL3300Device(D11, D12, D13, D10); 
+
+// Instantiate LDE sensor part number, LDES250BF6S, for example:
+NuerteyLDESeriesDevice<LDE_S250_B_t> g_LDESeriesDevice(D11, D12, D13, D10); 
         
 // As per my ARM NUCLEO-F767ZI specs:        
 DigitalOut        g_LEDGreen(LED1);
@@ -96,7 +98,7 @@ DigitalOut        g_LEDRed(LED3);
 // (conceptually) to return to. A crash will occur otherwise!
 int main()
 {
-    printf("\r\n\r\nNuertey-SCL3300-Mbed - Beginning... \r\n\r\n");
+    printf("\r\n\r\nNuertey-LDESeries-Mbed - Beginning... \r\n\r\n");
     
     // Indicate with LEDs that we are commencing.
     g_LEDBlue = LED_ON;
@@ -108,14 +110,22 @@ int main()
         printf("\r\n%s\r\n", Utilities::g_SystemProfile.c_str());
         printf("\r\n%s\r\n", Utilities::g_BaseRegisterValues.c_str());
         printf("\r\n%s\r\n", Utilities::g_HeapStatistics.c_str());
-        
-        g_SCL3300Device.LaunchStartupSequence();
-        g_SCL3300Device.LaunchNormalOperationSequence();
 
-        // Allow the user the chance to view the results:
-        ThisThread::sleep_for(5s);
-                
-        g_SCL3300Device.LaunchSelfTestMonitoring();
+        // Allow the sensor device time to stabilize from powering on 
+        // and time enough for it to accumulate continuously measuring
+        // temperature and pressure. Ergo:
+        //
+        // \" Power-on time 25 ms. \"
+        //
+        // \" When powered on, the sensor begins to continuously measure
+        // pressure. \"
+        ThisThread::sleep_for(25ms);        
+
+        printf("%s Pa\n", TruncateAndToString<double>(g_LDESeriesDevice.GetPressure()).c_str());
+        
+        printf("%s °C\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Celsius_t>()).c_str());
+        printf("%s °F\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Fahrenheit_t>()).c_str());
+        printf("%s K\n",  TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Kelvin_t>()).c_str());
 
         // Allow the user the chance to view the results:
         ThisThread::sleep_for(5s);
@@ -129,5 +139,5 @@ int main()
 
     g_LEDGreen = LED_OFF;
     g_LEDBlue = LED_OFF;
-    printf("\r\n\r\nNuertey-SCL3300-Mbed Application - Exiting.\r\n\r\n");
+    printf("\r\n\r\nNuertey-LDESeries-Mbed Application - Exiting.\r\n\r\n");
 }
