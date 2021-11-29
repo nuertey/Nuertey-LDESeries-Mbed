@@ -28,7 +28,7 @@
 ***********************************************************************/
 #pragma once
 
-/// Note that from hence, relevant sections of the 'DS_Standard-LDE_E_11815.pdf'
+// Note that from hence, relevant sections of the 'DS_Standard-LDE_E_11815.pdf'
 // are appropriately quoted (\" ... \") as needed. These are intended to
 // serve as a sort of Customer requirement repository and to evidence 
 // traceability.
@@ -41,7 +41,7 @@
 
 #include "Utilities.h"
 
-// Metaprogramming types to distinguish particular LDE series 
+// Metaprogramming types to distinguish the particular LDE series 
 // pressure sensor incarnation:
 struct LDE_S025_U_t {};
 struct LDE_S050_U_t {};
@@ -80,10 +80,20 @@ concept IsLDESeriesSensorType = (std::is_same_v<S, LDE_S025_U_t>
 // a standard 4-wire SPI bus. \"
 constexpr size_t NUMBER_OF_BITS = 8;
 
-// Convenience aliases:
-using EightBits_t       = std::bitset<NUMBER_OF_BITS>;
-using SixteenBits_t     = std::bitset<16>;
+// \" The entire 16 bit content of the LDE register is then read out on
+// the MISO pin, MSB first, by applying 16 successive clock pulses to 
+// SCLK with /CS asserted low. \"
+constexpr auto   NUMBER_OF_SPI_FRAME_BYTES = 2;
 
+// Convenience aliases:
+using EightBits_t   = std::bitset<NUMBER_OF_BITS>;
+using SixteenBits_t = std::bitset<16>;
+using SPIFrame_t    = std::array<unsigned char, NUMBER_OF_SPI_FRAME_BYTES>;
+
+template<typename T>
+concept IsLDESeriesSPIFrameType = ((std::is_integral_v<T> && (sizeof(T) == 1))
+                                || TrueTypesEquivalent_v<T, SPIFrame_t>);
+                              
 namespace ProtocolDefinitions
 {    
     enum class MemoryBank_t : uint16_t
@@ -92,8 +102,6 @@ namespace ProtocolDefinitions
         BANK_1 = 1 
     };
     
-    constexpr uint8_t LDE_SERIES_SPI_DUMMY_BYTE{0xFF}; // ??? 0x00?
-
     // Another benefit of such an approach is, our ScalingFactorMap is 
     // statically generated at compile-time hence useable in constexpr
     // contexts.    
@@ -136,8 +144,7 @@ namespace ProtocolDefinitions
     constexpr double ScalingFactorMap<LDE_S500_B_t>::VALUE =   60.0;
             
     // Concept usage within a constexpr conditional statement:                      
-    template <typename S>
-        requires IsLDESeriesSensorType<S>
+    template <IsLDESeriesSensorType S>
     constexpr auto GetScalingFactor()
     {
         constexpr auto LDE_SERIES_SCALING_FACTOR = ScalingFactorMap<S>::VALUE;        
@@ -149,43 +156,58 @@ namespace ProtocolDefinitions
     // Component ID [7:0] = C1h \"
     constexpr uint8_t WHO_AM_I{0xC1};
     
-    constexpr SPICommandFrame_t READ_ACCELERATION_X_AXIS  {0x04, 0x00, 0x00, 0xF7};
-    constexpr SPICommandFrame_t READ_ACCELERATION_Y_AXIS  {0x08, 0x00, 0x00, 0xFD};
-    constexpr SPICommandFrame_t READ_ACCELERATION_Z_AXIS  {0x0C, 0x00, 0x00, 0xFB};
-    constexpr SPICommandFrame_t READ_SELF_TEST_OUTPUT     {0x10, 0x00, 0x00, 0xE9};
-    constexpr SPICommandFrame_t ENABLE_ANGLE_OUTPUTS      {0xB0, 0x00, 0x1F, 0x6F};
-    constexpr SPICommandFrame_t READ_ANGLE_X_AXIS         {0x24, 0x00, 0x00, 0xC7};
-    constexpr SPICommandFrame_t READ_ANGLE_Y_AXIS         {0x28, 0x00, 0x00, 0xCD};
-    constexpr SPICommandFrame_t READ_ANGLE_Z_AXIS         {0x2C, 0x00, 0x00, 0xCB};
-    constexpr SPICommandFrame_t READ_TEMPERATURE          {0x14, 0x00, 0x00, 0xEF};
-    constexpr SPICommandFrame_t READ_STATUS_SUMMARY       {0x18, 0x00, 0x00, 0xE5};
-    constexpr SPICommandFrame_t READ_ERROR_FLAG_1         {0x1C, 0x00, 0x00, 0xE3};
-    constexpr SPICommandFrame_t READ_ERROR_FLAG_2         {0x20, 0x00, 0x00, 0xC1};
-    constexpr SPICommandFrame_t READ_COMMAND              {0x34, 0x00, 0x00, 0xDF};
-    constexpr SPICommandFrame_t CHANGE_TO_MODE_1          {0xB4, 0x00, 0x00, 0x1F};
-    constexpr SPICommandFrame_t CHANGE_TO_MODE_2          {0xB4, 0x00, 0x01, 0x02};
-    constexpr SPICommandFrame_t CHANGE_TO_MODE_3          {0xB4, 0x00, 0x02, 0x25};
-    constexpr SPICommandFrame_t CHANGE_TO_MODE_4          {0xB4, 0x00, 0x03, 0x38};
-    constexpr SPICommandFrame_t SET_POWERDOWN_MODE        {0xB4, 0x00, 0x04, 0x6B};
-    constexpr SPICommandFrame_t WAKEUP_FROM_POWERDOWN_MODE{0xB4, 0x00, 0x00, 0x1F};
-    constexpr SPICommandFrame_t SOFTWARE_RESET            {0xB4, 0x00, 0x20, 0x98};
-    constexpr SPICommandFrame_t READ_WHO_AM_I             {0x40, 0x00, 0x00, 0x91};
-    constexpr SPICommandFrame_t READ_SERIAL_1             {0x64, 0x00, 0x00, 0xA7};
-    constexpr SPICommandFrame_t READ_SERIAL_2             {0x68, 0x00, 0x00, 0xAD};
-    constexpr SPICommandFrame_t READ_CURRENT_BANK         {0x7C, 0x00, 0x00, 0xB3};
-    constexpr SPICommandFrame_t SWITCH_TO_BANK_0          {0xFC, 0x00, 0x00, 0x73};
-    constexpr SPICommandFrame_t SWITCH_TO_BANK_1          {0xFC, 0x00, 0x01, 0x6E};
+    // \"
+    // Data read – pressure
+    //
+    // When powered on, the sensor begins to continuously measure pressure.
+    // To initiate data transfer from the sensor, the following three unique
+    // bytes must be written sequentially, MSB first, to the MOSI pin (see
+    // Figure 5):
+    // \"
+    constexpr uint8_t POLL_CURRENT_PRESSURE_MEASUREMENT{0x2D};
+    constexpr uint8_t SEND_RESULT_TO_DATA_REGISTER     {0x14};
+    constexpr uint8_t READ_DATA_REGISTER               {0x98};
 
-    inline void DisplaySPIFrame(const uint8_t& frame)
-    {
-        std::ostringstream oss;
+    // \"
+    // The entire 16 bit content of the LDE register is then read out on
+    // the MISO pin, MSB first, by applying 16 successive clock pulses
+    // to SCLK with /CS asserted low. Note that the value of the LSB is
+    // held at zero for internal signal processing purposes. This is 
+    // below the noise threshold of the sensor and thus its fixed value
+    // does not affect sensor performance and accuracy. \"
+    constexpr SPIFrame_t LDE_SERIES_SPI_DUMMY_FRAME{0x00, 0x00};
 
-        oss << "\n\t0x";
-        oss << std::setfill('0') << std::setw(2) << std::hex 
-            << std::uppercase << static_cast<unsigned>(frame);
-        oss << '\n';
-        
-        printf("%s\n", oss.str().c_str());
+    template <IsLDESeriesSPIFrameType T>
+    inline void DisplaySPIFrame(const T& frame)
+    {        
+        if constexpr(TrueTypesEquivalent_v<T, SPIFrame_t>)
+        {
+            if (!frame.empty())
+            {
+                std::ostringstream oss;
+
+                oss << "\n\t0x";
+                for (auto& byte : frame)
+                {
+                    oss << std::setfill('0') << std::setw(2) << std::hex 
+                        << std::uppercase << static_cast<unsigned>(byte);
+                }
+                oss << '\n';
+                
+                printf("%s\n", oss.str().c_str());
+            }
+        }
+        else
+        {
+            std::ostringstream oss;
+
+            oss << "\n\t0x";
+            oss << std::setfill('0') << std::setw(2) << std::hex 
+                << std::uppercase << static_cast<unsigned>(frame);    
+            oss << '\n';
+            
+            printf("%s\n", oss.str().c_str());
+        }
     }
 
     template <typename T>    

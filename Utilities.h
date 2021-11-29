@@ -223,7 +223,7 @@ namespace Utilities
     void ReleaseGlobalResources();
 
     template <typename T, typename U>
-    struct TrueTypesEquivalent : std::is_same<typename std::decay_t<T>, U>::type
+    struct TrueTypesEquivalent_v : std::is_same_v<typename std::decay_t<T>, U>
     {};
 
     template <typename E>
