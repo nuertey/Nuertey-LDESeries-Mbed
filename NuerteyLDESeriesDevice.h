@@ -245,6 +245,11 @@ public:
 protected:
     void FullDuplexTransfer(const SPIFrame_t& cBuffer, SPIFrame_t& rBuffer);
     
+    double ConvertTemperature(const int16_t& temperature) const;    
+    
+    template<typename T>
+    double ConvertTemperature(const int16_t& temperature) const;
+    
 private:               
     SPI                                m_TheSPIBus;
     uint8_t                            m_Mode;
@@ -332,7 +337,19 @@ double NuerteyLDESeriesDevice<S>::GetTemperature() const
     
 }
 
-void NuerteyLDESeriesDevice::FullDuplexTransfer(const SPIFrame_t& cBuffer,
+template <typename T>
+double NuerteyLDESeriesDevice<S>::GetTemperature() const
+{
+    static_assert((std::is_same_v<T, Celsius_t>
+                || std::is_same_v<T, Fahrenheit_t>
+                || std::is_same_v<T, Kelvin_t>),
+    "Hey! Temperature scale MUST be one of the following types: \
+                \n\tCelsius_t\n\tFahrenheit_t \n\tKelvin_t");
+                    
+    return ConvertTemperature<T>(std::get<2>(std::get<4>(g_TheSensorData)));
+}
+
+void NuerteyLDESeriesDevice<S>::FullDuplexTransfer(const SPIFrame_t& cBuffer,
                                                       SPIFrame_t& rBuffer)
 {   
     // Do not presume that the users of this OS-abstraction are well-behaved.
@@ -365,4 +382,52 @@ void NuerteyLDESeriesDevice::FullDuplexTransfer(const SPIFrame_t& cBuffer,
     {
         printf("Error! SPI Command Frame - Incorrect number of bytes transmitted\n");
     } 
+}
+
+
+double NuerteyLDESeriesDevice<S>::ConvertTemperature(const int16_t& temperature) const
+{
+    double result{0.0};
+    
+    // \" Temperature is converted to °C with following equation:
+    // 
+    // Temperature [°C] = -273 + (TEMP / 18.9),
+    // 
+    // where TEMP is temperature sensor output register content in decimal format. \"
+    result = static_cast<double>(-273) 
+           + (static_cast<double>(temperature) 
+            / static_cast<double>(18.9)); // Convert 2's complement to °C. 
+    
+    return result;
+}
+
+template<typename T>
+double NuerteyLDESeriesDevice<S>::ConvertTemperature(const int16_t& temperature) const
+{
+    static_assert((std::is_same_v<T, Celsius_t>
+                || std::is_same_v<T, Fahrenheit_t>
+                || std::is_same_v<T, Kelvin_t>),
+    "Hey! Temperature scale MUST be one of the following types: \
+                \n\tCelsius_t\n\tFahrenheit_t \n\tKelvin_t");
+                    
+    auto result = ConvertTemperature(temperature);
+                    
+    if constexpr (std::is_same_v<T, Celsius_t>)
+    { 
+        // noop.
+    }
+    else if constexpr (std::is_same_v<T, Fahrenheit_t>)
+    {
+        // Since we must be wary of precision loss, pre-cast the operands:
+        result = (result * static_cast<double>(9) 
+                / static_cast<double>(5)) 
+                + static_cast<double>(32); // Convert °C to °F.
+    }
+    else if constexpr (std::is_same_v<T, Kelvin_t>)
+    {
+        // Since we must be wary of precision loss, pre-cast the operands:
+        result = result + static_cast<double>(273); // Convert °C to K.
+    }
+           
+    return result;    
 }
