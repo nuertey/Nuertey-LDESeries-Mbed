@@ -200,7 +200,6 @@ using namespace ProtocolDefinitions;
 // MISO   Master In Slave Out       LDE => MCU
 // =====================================================================
 
-template <IsLDESeriesSensorType S>
 class NuerteyLDESeriesDevice
 {        
     static constexpr uint8_t DEFAULT_BYTE_ORDER = 0;  // A value of zero indicates MSB-first.
@@ -229,12 +228,10 @@ public:
 
     virtual ~NuerteyLDESeriesDevice();
 
-    //void InitiateDataTransfer();
-    //SPIFrame_t ReadPressureData or stored as member within class, currentSPIResponse
+    template <IsLDESeriesSensorType S>
     double GetPressure() const;
-    double GetTemperature() const;
         
-    template<typename T>
+    template <IsLDESeriesSensorType S, typename T>
     double GetTemperature() const;
         
     uint8_t  GetMode() const { return m_Mode; }
@@ -243,12 +240,16 @@ public:
     uint32_t GetFrequency() const { return m_Frequency; };
 
 protected:
-    void FullDuplexTransfer(const SPIFrame_t& cBuffer, SPIFrame_t& rBuffer);
+    bool FullDuplexTransfer(const SPIFrame_t& cBuffer, SPIFrame_t& rBuffer);
     
-    double ConvertTemperature(const int16_t& temperature) const;    
+    template <IsLDESeriesSensorType S>
+    double ConvertPressure(const int16_t& sensorData) const;
     
-    template<typename T>
-    double ConvertTemperature(const int16_t& temperature) const;
+    template <IsLDESeriesSensorType S>   
+    double ConvertTemperature(const int16_t& sensorData) const;    
+    
+    template <IsLDESeriesSensorType S, typename T>
+    double ConvertTemperature(const int16_t& sensorData) const;
     
 private:               
     SPI                                m_TheSPIBus;
@@ -258,7 +259,7 @@ private:
     uint32_t                           m_Frequency;
 };
 
-NuerteyLDESeriesDevice<S>::NuerteyLDESeriesDevice(PinName mosi,
+NuerteyLDESeriesDevice::NuerteyLDESeriesDevice(PinName mosi,
                                                PinName miso,
                                                PinName sclk,
                                                PinName ssel,
@@ -322,39 +323,81 @@ NuerteyLDESeriesDevice<S>::NuerteyLDESeriesDevice(PinName mosi,
     set_default_write_value(reinterpret_cast<char>(LDE_SERIES_SPI_DUMMY_BYTE));
 }
 
-NuerteyLDESeriesDevice<S>::~NuerteyLDESeriesDevice()
+NuerteyLDESeriesDevice::~NuerteyLDESeriesDevice()
 {
 }
 
-double NuerteyLDESeriesDevice<S>::GetPressure() const
+template <IsLDESeriesSensorType S>
+double NuerteyLDESeriesDevice::GetPressure() const
 {
-    // Initiate pressure data transfer:
+    double result{0.0};
+    SPIFrame_t responseFrame = {}; // Initialize to zeros.
     
-}
-
-double NuerteyLDESeriesDevice<S>::GetTemperature() const
-{
+    // Initiate pressure measurement data transfer from the device:
+    m_TheSPIBus.write(POLL_CURRENT_PRESSURE_MEASUREMENT);
+    m_TheSPIBus.write(SEND_RESULT_TO_DATA_REGISTER);
+    m_TheSPIBus.write(READ_DATA_REGISTER);
     
+    auto status = FullDuplexTransfer(LDE_SERIES_SPI_DUMMY_FRAME, responseFrame);
+    
+    if (status)
+    {
+        auto sensorData = Deserialize(responseFrame);
+        result = ConvertPressure<S>(sensorData);
+    }
+    else
+    {
+        printf("%s: Error! Failed to retrieve LDE sensor pressure measurement value.\n",
+            __PRETTY_FUNCTION__);
+    }
+    
+    return result;
 }
 
-template <typename T>
-double NuerteyLDESeriesDevice<S>::GetTemperature() const
+template <IsLDESeriesSensorType S, typename T>
+double NuerteyLDESeriesDevice::GetTemperature() const
 {
     static_assert((std::is_same_v<T, Celsius_t>
                 || std::is_same_v<T, Fahrenheit_t>
                 || std::is_same_v<T, Kelvin_t>),
     "Hey! Temperature scale MUST be one of the following types: \
                 \n\tCelsius_t\n\tFahrenheit_t \n\tKelvin_t");
+
+    double result{0.0};
+    SPIFrame_t responseFrame = {}; // Initialize to zeros.
+    
+    // Initiate temperature measurement data transfer from the device:
+    m_TheSPIBus.write(POLL_CURRENT_TEMPERATURE_MEASUREMENT);
+    m_TheSPIBus.write(SEND_RESULT_TO_DATA_REGISTER);
+    m_TheSPIBus.write(READ_DATA_REGISTER);
+    
+    auto status = FullDuplexTransfer(LDE_SERIES_SPI_DUMMY_FRAME, responseFrame);
+    
+    if (status)
+    {
+        auto sensorData = Deserialize(responseFrame);
+        result = ConvertTemperature<S, T>(sensorData);
+    }
+    else
+    {
+        printf("%s: Error! Failed to retrieve LDE sensor temperature measurement value.\n",
+            __PRETTY_FUNCTION__);
+    }
+    
+    return result;
                     
-    return ConvertTemperature<T>(std::get<2>(std::get<4>(g_TheSensorData)));
+    return ConvertTemperature<S, T>(sensorData);
 }
 
-void NuerteyLDESeriesDevice<S>::FullDuplexTransfer(const SPIFrame_t& cBuffer,
+bool NuerteyLDESeriesDevice::FullDuplexTransfer(const SPIFrame_t& cBuffer,
                                                       SPIFrame_t& rBuffer)
 {   
+    bool result{true};
+    
     // Do not presume that the users of this OS-abstraction are well-behaved.
     rBuffer.fill(0);
 
+    // Enable to facilate runtime debugging:
     //DisplayFrame(cBuffer);
 
     // Assert the Slave Select line, acquiring exclusive access to the
@@ -380,12 +423,25 @@ void NuerteyLDESeriesDevice<S>::FullDuplexTransfer(const SPIFrame_t& cBuffer,
     
     if (bytesWritten != cBuffer.size())
     {
-        printf("Error! SPI Command Frame - Incorrect number of bytes transmitted\n");
+        printf("%s: Error! SPI Command Frame - Incorrect number of bytes transmitted\n",
+            __PRETTY_FUNCTION__);
+        result = false;
+        
+        // Enable to facilate runtime debugging:
+        //DisplayFrame(rBuffer);
     } 
+    
+    return result;
 }
 
+template <IsLDESeriesSensorType S>
+double NuerteyLDESeriesDevice::ConvertPressure(const int16_t& sensorData) const
+{
+    
+}
 
-double NuerteyLDESeriesDevice<S>::ConvertTemperature(const int16_t& temperature) const
+template <IsLDESeriesSensorType S>
+double NuerteyLDESeriesDevice::ConvertTemperature(const int16_t& sensorData) const
 {
     double result{0.0};
     
@@ -395,14 +451,14 @@ double NuerteyLDESeriesDevice<S>::ConvertTemperature(const int16_t& temperature)
     // 
     // where TEMP is temperature sensor output register content in decimal format. \"
     result = static_cast<double>(-273) 
-           + (static_cast<double>(temperature) 
+           + (static_cast<double>(sensorData) 
             / static_cast<double>(18.9)); // Convert 2's complement to °C. 
     
     return result;
 }
 
-template<typename T>
-double NuerteyLDESeriesDevice<S>::ConvertTemperature(const int16_t& temperature) const
+template <IsLDESeriesSensorType S, typename T>
+double NuerteyLDESeriesDevice::ConvertTemperature(const int16_t& sensorData) const
 {
     static_assert((std::is_same_v<T, Celsius_t>
                 || std::is_same_v<T, Fahrenheit_t>
@@ -410,7 +466,7 @@ double NuerteyLDESeriesDevice<S>::ConvertTemperature(const int16_t& temperature)
     "Hey! Temperature scale MUST be one of the following types: \
                 \n\tCelsius_t\n\tFahrenheit_t \n\tKelvin_t");
                     
-    auto result = ConvertTemperature(temperature);
+    auto result = ConvertTemperature<S>(sensorData);
                     
     if constexpr (std::is_same_v<T, Celsius_t>)
     { 
