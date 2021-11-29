@@ -19,6 +19,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+
+#include <span> // std::span (C++20) is a safer alternative to separated pointer/size.
+#include <bitset>
+#include <cmath>
 #include <ctime>
 #include <cctype>
 #include <climits>

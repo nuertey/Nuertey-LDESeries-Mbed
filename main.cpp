@@ -34,6 +34,11 @@
 #define LED_ON  1
 #define LED_OFF 0
 
+// \" Specification notes (cont.)
+//
+// (17) For correct operation of LDE…3... devices, the device driving
+// the SPI bus must have a minimum drive capability of ±2 mA. \"
+
 // \" Care should be taken to ensure that the sensor is properly 
 // connected to the master microcontroller. Refer to the manufacturer's
 // datasheet for more information regarding physical connections. \"

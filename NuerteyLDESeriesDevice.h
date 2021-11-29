@@ -180,40 +180,24 @@
 using namespace Utilities;
 using namespace ProtocolDefinitions;
 
-// \"Table 7 describes the DC characteristics of SCL3300-D01 sensor SPI I/O pins. Supply
-// voltage is 3.3 V unless otherwise specified. Current flowing into the circuit has a positive
-// value.
-//
-// Table 7 SPI DC Characteristics
-// ...
-// Serial Clock SCK (Pull Down)
-// ...
-// Chip Select CSB (Pull Up), low active
-// ...
-// Serial Data Input MOSI (Pull Down)
-// ...
-// Serial Data Output MISO (Tri State)
-// ...
-
-// \" SPI communication transfers data between the SPI master and 
-// registers of the SCL3300 ASIC. The SCL3300 always operates as a 
-// slave device in masterslave operation mode. \"
+// SPI communication transfers data between the SPI master and 
+// registers of the LDE Series ASIC. The LDE Series always operates as a 
+// slave device in masterslave operation mode.
 
 // The SPI communication herein implemented follows a Master/Slave 
 // paradigm:
 // 
-// NUCLEO-F767ZI MCU=Master (MOSI output line), SCL3300=Slave (MISO output line) 
+// NUCLEO-F767ZI MCU=Master (MOSI output line), LDE=Slave (MISO output line) 
 
 // =====================================================================
-// \" Table 12 SPI interface pins
+// SPI interface pins
 //
 // Pin    Pin Name                  Communication
 //                                  
-// CSB    Chip Select (active low)  MCU => SCL3300
-// SCK    Serial Clock              MCU => SCL3300
-// MOSI   Master Out Slave In       MCU => SCL3300
-// MISO   Master In Slave Out       SCL3300 => MCU
-// \"
+// CSB    Chip Select (active low)  MCU => LDE
+// SCK    Serial Clock              MCU => LDE
+// MOSI   Master Out Slave In       MCU => LDE
+// MISO   Master In Slave Out       LDE => MCU
 // =====================================================================
 
 template <IsLDESeriesSensorType S>
@@ -221,20 +205,12 @@ class NuerteyLDESeriesDevice
 {        
     static constexpr uint8_t DEFAULT_BYTE_ORDER = 0;  // A value of zero indicates MSB-first.
     
-    // \" SPI communication may affect the noise level. Used SPI clock 
-    // should be carefully validated. Recommended SPI clock is 2 MHz -
-    // 4 MHz to achieve the best performance. \"
-    static constexpr uint32_t DEFAULT_FREQUENCY = 4000000;
-
-    // \" Figure 7 Timing diagram of SPI communication.
-    // 
-    // Table 8 SPI AC electrical characteristics.
-    // 
-    // Symbol Description                                         Min. Unit
+    // \" 
+    // External clock frequency 
     //
-    // ...
-    // TLH    Time between SPI cycles, CSB at high level (90%)    10   us  \"    
-    static constexpr uint8_t  MINIMUM_TIME_BETWEEN_SPI_CYCLES_MICROSECS = 10;
+    //     fECLK (VCKSEL=0) Min. 0.2 MHz     Max. 5 MHz
+    // \"
+    static constexpr uint32_t DEFAULT_FREQUENCY = 5000000;
     
 public:
     // \" 3-wire SPI connection is not supported. \"
@@ -253,105 +229,21 @@ public:
 
     virtual ~NuerteyLDESeriesDevice();
 
-    void InitiateDataTransfer();
+    //void InitiateDataTransfer();
     //SPIFrame_t ReadPressureData or stored as member within class, currentSPIResponse
     double GetPressure() const;
-
-    void LaunchStartupSequence();
-    void LaunchNormalOperationSequence();
-    
-    std::error_code LaunchSelfTestMonitoring();
-
-    void ReadSensorData(auto& item);
-    void ReadAllSensorData();
-
-    std::error_code ClearStatusSummaryRegister();
-
-    template <typename T>
-    std::error_code ValidateSPIResponseFrame(T& sensorData,
-                                const SPICommandFrame_t& commandFrame,
-                                const SPICommandFrame_t& responseFrame);
-                    
-    std::error_code ValidateCRC(const SPICommandFrame_t& frame);
-    
-    std::error_code FullDuplexTransfer(const SPICommandFrame_t& cBuffer, 
-                                             SPICommandFrame_t& rBuffer);
-    
-    // Gets work on already retrieved SCL3300SensorData_t.
-    double GetAccelerationXAxis() const;
-    double GetAccelerationYAxis() const;
-    double GetAccelerationZAxis() const;
-    double GetAngleXAxis() const;
-    double GetAngleYAxis() const;
-    double GetAngleZAxis() const;
-    
+    double GetTemperature() const;
+        
     template<typename T>
     double GetTemperature() const;
-    
-    std::error_code GetSelfTestOutputErrorCode() const;
-    std::error_code GetStatusSummaryErrorCode() const;
-
-    // C++20 concepts:    
-    template <typename E>
-        requires (std::is_same_v<E, ErrorFlag1Reason_t> || std::is_same_v<E, ErrorFlag2Reason_t>)
-    void PrintErrorFlagReason(const uint16_t& errorFlag, const E& reason) const;
-
-    // Reads employ SPI to actually retrieve fresh data from the device.    
-    std::error_code ReadErrorFlag1Reason(uint16_t& errorFlag,
-                                         ErrorFlag1Reason_t& reason);
-    std::error_code ReadErrorFlag2Reason(uint16_t& errorFlag, 
-                                         ErrorFlag2Reason_t& reason);
-    std::error_code ReadSerialNumber(std::string& serialNumber);
-    std::error_code ReadCurrentBank(MemoryBank_t& bank);
-    
-    void PrintCommandRegisterValues(const uint16_t& commandValue) const;
-    std::error_code ReadCommandRegister(SixteenBits_t& bitValue);
-
-    template <SPICommandFrame_t V>
-    std::error_code SwitchToBank();
-    
-    void SwitchToBank0();
-    void SwitchToBank1();
-
-    template <SPICommandFrame_t V>
-    std::error_code WriteCommandOperation();
-    
-    std::error_code EnableAngleOutputs();
-    
-    void InitiateResetIfErrorCode(const std::error_code& errorCode);
-    void InitiateResetIfErrorFlag2(const ErrorFlag2Reason_t& reason);
-    
-    void ChangeToMode1();
-    void ChangeToMode2();
-    void ChangeToMode3();
-    void ChangeToMode4();
-    void PowerDown();
-    void WakeupFromPowerDown();
-    void SoftwareReset();
-    
-    void AssertWhoAmI() const;
-    
+        
     uint8_t  GetMode() const { return m_Mode; }
     uint8_t  GetByteOrder() const { return m_ByteOrder; }
     uint8_t  GetBitsPerWord() const { return m_BitsPerWord; }
     uint32_t GetFrequency() const { return m_Frequency; };
 
 protected:
-    double ConvertAcceleration(const int16_t& accelaration) const;
-    double ConvertAngle(const int16_t& angle) const;
-    double ConvertTemperature(const int16_t& temperature) const;    
-    
-    template<typename T>
-    double ConvertTemperature(const int16_t& temperature) const;
-    
-    std::error_code ConvertStatusSummaryToErrorCode(const uint16_t& status) const;
-    std::error_code ConvertSTOToErrorCode(const int16_t& sto) const;
-    
-    ErrorFlag1Reason_t ConvertErrorFlag1ToReason(const uint16_t& errorFlag) const;
-    ErrorFlag2Reason_t ConvertErrorFlag2ToReason(const uint16_t& errorFlag) const;
-    
-    std::string ComposeSerialNumber(const uint16_t& serial1LSB, 
-                                    const uint16_t& serial2MSB) const;
+    void FullDuplexTransfer(const SPIFrame_t& cBuffer, SPIFrame_t& rBuffer);
     
 private:               
     SPI                                m_TheSPIBus;
@@ -429,167 +321,24 @@ NuerteyLDESeriesDevice<S>::~NuerteyLDESeriesDevice()
 {
 }
 
-void NuerteyLDESeriesDevice<S>::InitiateDataTransfer()
-{
-    
-}
-
 double NuerteyLDESeriesDevice<S>::GetPressure() const
 {
+    // Initiate pressure data transfer:
     
 }
 
-template <typename T>
-std::error_code NuerteyLDESeriesDevice::ValidateSPIResponseFrame(T& sensorData,
-                                const SPICommandFrame_t& commandFrame,
-                                const SPICommandFrame_t& responseFrame)
+double NuerteyLDESeriesDevice<S>::GetTemperature() const
 {
-    std::error_code result{};
     
-    result = ValidateCRC(responseFrame);
-    if (!result)
-    {
-        // Prefer C++17 structured bindings over std::tie() and std::ignore.
-        // Updated compilers guarantee us the suppression of warnings on
-        // the ignored tuple elements.
-        auto [commandOpCodeReadWrite, 
-              commandOpCodeAddress, 
-              ignoredVariable1,
-              ignoredVariable2, 
-              ignoredVariable3] = Deserialize<T>(commandFrame);        
-
-        auto [receivedOpCodeReadWrite, 
-              receivedOpCodeAddress, 
-              returnStatusMISO,
-              receivedSensorData, 
-              ignoredVariable4] = Deserialize<T>(responseFrame);        
-
-        if (returnStatusMISO != ToUnderlyingType(ReturnStatus_t::ERROR))
-        {
-            if (commandFrame == READ_STATUS_SUMMARY)
-            {
-                static bool startupIndication = true;
-                
-                if (returnStatusMISO == ToUnderlyingType(ReturnStatus_t::NORMAL_OPERATION_NO_FLAGS))
-                {
-                    if (startupIndication)
-                    {
-                        startupIndication = false;
-                        
-                        printf("Success! %s: \n\t[%d] -> First response where STATUS has been \
-                                cleared. RS bits are indicating proper start-up.\n", 
-                            __PRETTY_FUNCTION__,
-                            returnStatusMISO);
-                    }
-                }
-                else
-                {
-                    printf("Warning! Start-up has not been performed correctly.\n");
-                }
-            }
-            
-            if (receivedOpCodeAddress == commandOpCodeAddress)
-            {
-                if (receivedOpCodeReadWrite == commandOpCodeReadWrite)
-                {
-                    sensorData = receivedSensorData; 
-                }
-                else
-                {
-                    result = make_error_code(SensorStatus_t::ERROR_OPCODE_READ_WRITE_MISMATCH);
-                }
-            }
-            else
-            {
-                result = make_error_code(SensorStatus_t::ERROR_INVALID_RESPONSE_FRAME);
-            }
-        }        
-        else
-        {
-            if (commandFrame == READ_STATUS_SUMMARY)
-            {
-                // \" Error flag (or flags) are active in Status Summary register... \"
-                // 
-                // This is expected to occur during startup hence fake the SensorStatus_t:
-                //
-                // \" Read STATUS. ‘11’ Clear status summary. Reset status summary \"
-                result = make_error_code(SensorStatus_t::ERROR_RETURN_STATUS_STARTUP_IN_PROGRESS);              
-            }
-            else
-            {
-                // \" In case of wrong CRC in MOSI write/read, RS bits “11” 
-                // are set in the next SPI response, STATUS register is not 
-                // changed, and write command must be discarded. \"
-                
-                // Should never happen due to provision of proactive static
-                // assert, ProtocolDefinitions::AssertValidSPICommandFrame<T>().
-                // Still, if the sensor responds that it is so, react on it.
-                result = make_error_code(SensorStatus_t::ERROR_INVALID_COMMAND_FRAME); 
-            }
-        }
-    }
-    
-    return result;
 }
 
-std::error_code NuerteyLDESeriesDevice::ValidateCRC(const SPICommandFrame_t& frame)
-{
-    std::error_code result{};
-    
-    // \" For SPI transmission error detection a Cyclic Redundancy 
-    // Check (CRC) is implemented, for details see Table 16. \"
-    auto receivedCRC = frame.at(3);
-    auto expectedCRC = CalculateCRC(frame);
-    
-    if (receivedCRC != expectedCRC)
-    {
-        // \" If CRC in MISO SPI response is incorrect, communication 
-        // failure [has] occurred. \"
-        result = make_error_code(SensorStatus_t::ERROR_COMMUNICATION_FAILURE_BAD_CHECKSUM);
-    }
-    
-    return result;        
-}
-
-std::error_code NuerteyLDESeriesDevice::FullDuplexTransfer(
-           const SPICommandFrame_t& cBuffer, SPICommandFrame_t& rBuffer)
-{
-    std::error_code result{};
-    
-    // Any benign housekeeping (without any side-effects), can be 
-    // accomplished here so that by the time we get to the busy-wait
-    // statement below, we are likely guaranteed that we will never 
-    // actually busy-wait.
-    
+void NuerteyLDESeriesDevice::FullDuplexTransfer(const SPIFrame_t& cBuffer,
+                                                      SPIFrame_t& rBuffer)
+{   
     // Do not presume that the users of this OS-abstraction are well-behaved.
     rBuffer.fill(0);
 
     //DisplayFrame(cBuffer);
-    
-    if (cBuffer == SWITCH_TO_BANK_0)
-    {
-        printf("Switching the SCL3300 sensor operations to memory bank 0...\n");
-    }
-    else if (cBuffer == SWITCH_TO_BANK_1)
-    {
-        printf("Switching the SCL3300 sensor operations to memory bank 1...\n");       
-    }
-    
-    // Enforce the 10 us SPI transfer interval requirement with my 
-    // customized Clock_t:
-    auto currentTime = NucleoF767ZIClock_t::now();
-
-    // \"NOTE: For sensor operation, time between consecutive SPI requests (i.e. CSB
-    // high) must be at least 10 µs. If less than 10 µs is used, output data will be
-    // corrupted. \"
-    
-    // Note to only escape the <chrono> system with '.count()' only when
-    // you absolutely must. Also, note that the statement below 
-    // constitutes a busy-wait.
-    while (std::chrono::duration_cast<MicroSecs_t>(currentTime - m_LastSPITransferTime).count()
-         < MINIMUM_TIME_BETWEEN_SPI_CYCLES_MICROSECS)
-    {
-    };
 
     // Assert the Slave Select line, acquiring exclusive access to the
     // SPI bus. Chip select is active low hence cs = 0 here. Note that
@@ -606,52 +355,14 @@ std::error_code NuerteyLDESeriesDevice::FullDuplexTransfer(
                                                  cBuffer.size(),
                                                  reinterpret_cast<char*>(rBuffer.data()), 
                                                  rBuffer.size());
-
-    m_LastSPITransferTime = NucleoF767ZIClock_t::now();
     
     // Deassert the Slave Select line, releasing exclusive access to the
     // SPI bus. Chip select is active low hence cs = 1 here.  Note that
     // write already internally deselects and mutex unlocks the SPI bus.
     //m_TheSPIBus.deselect();   
     
-    // We will ignore SPI reception for now, as from our standpoint and 
-    // at this particular moment in time, we only care about SPI 
-    // transmission success. Reception will be validated elsewhere.
     if (bytesWritten != cBuffer.size())
     {
-        result = make_error_code(SensorStatus_t::ERROR_INCORRECT_NUMBER_OF_BYTES_WRITTEN);
-    }
-    
-    return result;    
-}
-
-void NuerteyLDESeriesDevice::WakeupFromPowerDown()
-{
-    printf("Waking up the SCL3300 sensor from PowerDown mode...\n");
-    m_PoweredDownMode = false;
-    WriteCommandOperation<WAKEUP_FROM_POWERDOWN_MODE>();    
-}
-
-void NuerteyLDESeriesDevice::SoftwareReset()
-{
-    // \"Software (SW) reset is done with SPI operation (see 5.1.4). 
-    // Hardware (HW) reset is done by power cycling the sensor. If these
-    // do not reset the error, then possible component error has occurred
-    // and system needs to be shut down and part returned to supplier. \"
-    printf("Software resetting the SCL3300 sensor...\n");
-    WriteCommandOperation<SOFTWARE_RESET>();
-}
-
-void NuerteyLDESeriesDevice::AssertWhoAmI() const
-{ 
-    // \" WHOAMI is a 8-bit register for component identification. 
-    // Returned value is C1h.
-    //
-    // Note: as returned value is fixed, this can be used to ensure SPI
-    // communication is working correctly. \"
-    uint8_t retrievedValue = (std::get<2>(std::get<9>(g_TheSensorData)) & 0xFF);
-    
-    assert(((void)"WHOAMI component identification incorrect! SPI \
-                   communication must NOT be working correctly!", 
-        (retrievedValue == WHO_AM_I)));
+        printf("Error! SPI Command Frame - Incorrect number of bytes transmitted\n");
+    } 
 }

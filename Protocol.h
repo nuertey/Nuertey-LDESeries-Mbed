@@ -35,23 +35,29 @@
 //
 // https://www.first-sensor.com/cms/upload/datasheets/DS_Standard-LDE_E_11815.pdf
 
-#include <span> // std::span (C++20) is a safer alternative to separated pointer/size.
-#include <bitset>
-#include <cmath>
-
 #include "Utilities.h"
+
+// \"
+// Series     Pressure Range                    Calibration
+// 
+// LDE        S025     25 Pa (0.1 in H2O)       B Bidirectional
+//            S050     50 Pa (0.2 in H2O)       U Unidirectional
+//            S100    100 Pa (0.4 in H2O)
+//            S250    250 Pa (1 in H2O)
+//            S500    500 Pa (2 in H2O)
+// \"
 
 // Metaprogramming types to distinguish the particular LDE series 
 // pressure sensor incarnation:
 struct LDE_S025_U_t {};
 struct LDE_S050_U_t {};
 struct LDE_S100_U_t {};
-struct LDE_S250_U_t {}; // Example, LDES250UF6S. const int SCALE_FACTOR = 120;
+struct LDE_S250_U_t {}; // Example, LDES250UF6S. 
 struct LDE_S500_U_t {};
 struct LDE_S025_B_t {};
 struct LDE_S050_B_t {};
 struct LDE_S100_B_t {};
-struct LDE_S250_B_t {};
+struct LDE_S250_B_t {}; // Example, LDES250BF6S
 struct LDE_S500_B_t {};
 
 // A concept is a named set of requirements. The definition of a 
@@ -86,18 +92,14 @@ constexpr size_t NUMBER_OF_BITS = 8;
 constexpr auto   NUMBER_OF_SPI_FRAME_BYTES = 2;
 
 // Convenience aliases:
-using EightBits_t   = std::bitset<NUMBER_OF_BITS>;
-using SixteenBits_t = std::bitset<16>;
-using SPIFrame_t    = std::array<unsigned char, NUMBER_OF_SPI_FRAME_BYTES>;
+using SPIFrame_t = std::array<unsigned char, NUMBER_OF_SPI_FRAME_BYTES>;
 
 template<typename T>
 concept IsLDESeriesSPIFrameType = ((std::is_integral_v<T> && (sizeof(T) == 1))
                                 || TrueTypesEquivalent_v<T, SPIFrame_t>);
                               
 namespace ProtocolDefinitions
-{    
-
-    
+{        
     // Another benefit of such an approach is, our ScalingFactorMap is 
     // statically generated at compile-time hence useable in constexpr
     // contexts.    
@@ -160,12 +162,25 @@ namespace ProtocolDefinitions
     constexpr uint8_t READ_DATA_REGISTER               {0x98};
 
     // \"
+    // Data read – temperature
+    //
+    // The on-chip temperature sensor changes 95 counts/°C over the
+    // operating range. The temperature data format is 15-bit plus sign
+    // in two’s complement format. To read temperature, use the following
+    // sequence:
+    // \"
+    constexpr uint8_t POLL_CURRENT_TEMPERATURE_MEASUREMENT{0x2A};
+    //constexpr uint8_t SEND_RESULT_TO_DATA_REGISTER      {0x14};
+    //constexpr uint8_t READ_DATA_REGISTER                {0x98};
+
+    // \"
     // The entire 16 bit content of the LDE register is then read out on
     // the MISO pin, MSB first, by applying 16 successive clock pulses
     // to SCLK with /CS asserted low. Note that the value of the LSB is
     // held at zero for internal signal processing purposes. This is 
     // below the noise threshold of the sensor and thus its fixed value
     // does not affect sensor performance and accuracy. \"
+    constexpr uint8_t    LDE_SERIES_SPI_DUMMY_BYTE {0x00};
     constexpr SPIFrame_t LDE_SERIES_SPI_DUMMY_FRAME{0x00, 0x00};
 
     template <IsLDESeriesSPIFrameType T>
