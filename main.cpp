@@ -85,16 +85,14 @@
 //        PinName miso
 //        PinName sclk
 //        PinName ssel
-
-// Instantiate LDE sensor part number, LDES250BF6S, for example:
-NuerteyLDESeriesDevice<LDE_S250_B_t> g_LDESeriesDevice(D11, D12, D13, D10); 
+NuerteyLDESeriesDevice g_LDESeriesDevice(D11, D12, D13, D10); 
         
 // As per my ARM NUCLEO-F767ZI specs:        
 DigitalOut        g_LEDGreen(LED1);
 DigitalOut        g_LEDBlue(LED2);
 DigitalOut        g_LEDRed(LED3);
 
-// Do not return from main() as in  Embedded Systems, there is nothing
+// Do not return from main() as in Embedded Systems, there is nothing
 // (conceptually) to return to. A crash will occur otherwise!
 int main()
 {
@@ -121,11 +119,13 @@ int main()
         // pressure. \"
         ThisThread::sleep_for(25ms);        
 
-        printf("%s Pa\n", TruncateAndToString<double>(g_LDESeriesDevice.GetPressure()).c_str());
+        // Poll and query temperature and pressure measurements from LDE
+        // sensor part number, LDES250BF6S, for example:
+        printf("%s Pa\n\n", TruncateAndToString<double>(g_LDESeriesDevice.GetPressure<LDE_S250_B_t>()).c_str());
         
-        printf("%s °C\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Celsius_t>()).c_str());
-        printf("%s °F\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Fahrenheit_t>()).c_str());
-        printf("%s K\n",  TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Kelvin_t>()).c_str());
+        printf("%s °C\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<LDE_S250_B_t, Celsius_t>()).c_str());
+        printf("%s °F\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<LDE_S250_B_t, Fahrenheit_t>()).c_str());
+        printf("%s K\n",  TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<LDE_S250_B_t, Kelvin_t>()).c_str());
 
         // Allow the user the chance to view the results:
         ThisThread::sleep_for(5s);
