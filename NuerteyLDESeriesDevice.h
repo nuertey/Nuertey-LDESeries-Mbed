@@ -537,18 +537,6 @@ inline std::string ToString(const CommandRegisterValue_t & key)
 
 // =====================================================================
 
-// Metaprogramming types to distinguish particular sensor incarnations:
-struct LDE_S025_U_t {};
-struct LDE_S050_U_t {};
-struct LDE_S100_U_t {};
-struct LDE_S250_U_t {}; // Example, LDES250UF6S. const int SCALE_FACTOR = 120;
-struct LDE_S500_U_t {};
-struct LDE_S025_B_t {};
-struct LDE_S050_B_t {};
-struct LDE_S100_B_t {};
-struct LDE_S250_B_t {};
-struct LDE_S500_B_t {};
-
 // Metaprogramming types to distinguish sensor temperature scales:
 struct Celsius_t {};
 struct Fahrenheit_t {};
