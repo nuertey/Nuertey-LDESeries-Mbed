@@ -41,9 +41,10 @@
 
 #include "Utilities.h"
 
+// \" The LDE serial interface is a high-speed synchronous data input 
+// and output communication port. The serial interface operates using 
+// a standard 4-wire SPI bus. \"
 constexpr size_t NUMBER_OF_BITS = 8;
-
-// \" SCL3300 SPI is a 32-bit 4-wire slave configured bus. \"
 constexpr auto   NUMBER_OF_SPI_COMMAND_FRAME_BYTES = 4;
 
 // Convenience aliases:

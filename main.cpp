@@ -25,14 +25,30 @@
 *
 * @author    Nuertey Odzeyem
 * 
-* @date      November 25th, 2021
+* @date      November 28th, 2021
 *
 * @copyright Copyright (c) 2021 Nuertey Odzeyem. All Rights Reserved.
 ***********************************************************************/
-#include "NuerteySCL3300Device.h"
+#include "NuerteyLDESeriesDevice.h"
 
 #define LED_ON  1
 #define LED_OFF 0
+
+// \" Care should be taken to ensure that the sensor is properly 
+// connected to the master microcontroller. Refer to the manufacturer's
+// datasheet for more information regarding physical connections. \"
+
+// \" Application circuit
+//
+// The use of pull-up resistors is generally unnecessary for SPI as most
+// master devices are configured for push-pull mode. If pull-up resistors
+// are required for use with 3 V LDE devices, howeer, they should be 
+// greater than 50 kW.
+//
+// ...
+//
+// If these series resistors are used, they must be physically placed as
+// close as possible to the pins of the master and slave devices. \"
 
 // Connector: CN7 
 // Pin      : 14 
