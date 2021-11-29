@@ -70,16 +70,72 @@ namespace ProtocolDefinitions
     };
     
     constexpr uint8_t LDE_SERIES_SPI_DUMMY_BYTE{0xFF}; // ??? 0x00?
+
+    // Another benefit of such an approach is, our ScalingFactor_t is 
+    // statically generated at compile-time hence useable in constexpr
+    // contexts.    
+    template <typename S>
+    struct ScalingFactorMap { static constexpr double VALUE; };
     
-    template<typename T>
+    template <typename S>
+    constexpr double ScalingFactorMap<S>::VALUE = 0.0; // Default static object initialization.
+    
+    // Partial template specializations mimics core 'map' functionality.
+    // Good and quiet thought makes programming fun and creative :).
+    template <>
+    constexpr double ScalingFactorMap<LDE_S025_U_t>::VALUE = 1200.0;
+                                                              
+    template <>                                               
+    constexpr double ScalingFactorMap<LDE_S050_U_t>::VALUE =  600.0;
+                                                              
+    template <>                                               
+    constexpr double ScalingFactorMap<LDE_S100_U_t>::VALUE =  300.0;
+                                                              
+    template <>                                               
+    constexpr double ScalingFactorMap<LDE_S250_U_t>::VALUE =  120.0;
+                                                              
+    template <>                                               
+    constexpr double ScalingFactorMap<LDE_S500_U_t>::VALUE =   60.0;
+    
+    template <>
+    constexpr double ScalingFactorMap<LDE_S025_B_t>::VALUE = 1200.0;
+
+    template <>
+    constexpr double ScalingFactorMap<LDE_S050_B_t>::VALUE =  600.0;
+                                                              
+    template <>                                               
+    constexpr double ScalingFactorMap<LDE_S100_B_t>::VALUE =  300.0;
+                                                              
+    template <>                                               
+    constexpr double ScalingFactorMap<LDE_S250_B_t>::VALUE =  120.0;
+                                                              
+    template <>                                               
+    constexpr double ScalingFactorMap<LDE_S500_B_t>::VALUE =   60.0;
+
+    // A concept is a named set of requirements. The definition of a 
+    // concept must appear at namespace scope. 
+    //
+    // The intent of concepts is to model semantic categories (Number,
+    // Range, RegularFunction) rather than syntactic restrictions
+    // (HasPlus, Array). According to ISO C++ core guideline T.20,
+    // "The ability to specify meaningful semantics is a defining
+    // characteristic of a true concept, as opposed to a syntactic
+    // constraint."
+    template<typename S>
+    concept IsLDESeriesSensorType = (std::is_same_v<S, LDE_S025_U_t>
+                                  || std::is_same_v<S, LDE_S050_U_t>
+                                  || std::is_same_v<S, LDE_S100_U_t>
+                                  || std::is_same_v<S, LDE_S250_U_t>
+                                  || std::is_same_v<S, LDE_S500_U_t>
+                                  || std::is_same_v<S, LDE_S025_B_t>
+                                  || std::is_same_v<S, LDE_S050_B_t>
+                                  || std::is_same_v<S, LDE_S100_B_t>
+                                  || std::is_same_v<S, LDE_S250_B_t>
+                                  || std::is_same_v<S, LDE_S500_B_t>)
     constexpr double GetScalingFactor()
     {
-        if constexpr ()
-        {
-            constexpr double LDE_SERIES_SCALING_FACTOR{120};
-            
-            return LDE_SERIES_SCALING_FACTOR;
-        }
+        constexpr double LDE_SERIES_SCALING_FACTOR = ScalingFactorMap<T>::VALUE;        
+        return LDE_SERIES_SCALING_FACTOR;
     }
     
     // \" 8-bit register for component identification
