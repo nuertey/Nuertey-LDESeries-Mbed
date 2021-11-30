@@ -12,7 +12,7 @@ From its datasheet, the First Sensor LDE Series sensor is characterized as:
 
 - https://www.first-sensor.com/cms/upload/datasheets/DS_Standard-LDE_E_11815.pdf
 
-![LDE Series Sensor Driver Class Diagram](https://github.com/nuertey/RandomArtifacts/blob/master/NuerteySCL3300Device2.png?raw=true)
+![LDE Series Sensor Driver Class Diagram](https://github.com/nuertey/RandomArtifacts/blob/master/NuerteyLDESeriesDevice2.png?raw=true)
 
 Quoting the above datasheet further:
  
