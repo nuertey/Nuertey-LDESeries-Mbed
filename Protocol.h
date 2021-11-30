@@ -86,6 +86,11 @@ struct Celsius_t {};
 struct Fahrenheit_t {};
 struct Kelvin_t {};
 
+template<typename T>
+concept IsTemperatureScaleType = (std::is_same_v<T, Celsius_t>
+                               || std::is_same_v<T, Fahrenheit_t>
+                               || std::is_same_v<T, Kelvin_t>);
+
 // \" The LDE serial interface is a high-speed synchronous data input 
 // and output communication port. The serial interface operates using 
 // a standard 4-wire SPI bus. \"

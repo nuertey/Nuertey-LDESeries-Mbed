@@ -231,7 +231,7 @@ public:
     template <IsLDESeriesSensorType S>
     double GetPressure() const;
         
-    template <typename T>
+    template <IsTemperatureScaleType T>
     double GetTemperature() const;
         
     uint8_t  GetMode() const { return m_Mode; }
@@ -247,7 +247,7 @@ protected:
     
     double ConvertTemperature(const int16_t& sensorData) const;    
     
-    template <typename T>
+    template <IsTemperatureScaleType T>
     double ConvertTemperature(const int16_t& sensorData) const;
     
 private:               
@@ -355,15 +355,9 @@ double NuerteyLDESeriesDevice::GetPressure() const
     return result;
 }
 
-template <typename T>
+template <IsTemperatureScaleType T>
 double NuerteyLDESeriesDevice::GetTemperature() const
 {
-    static_assert((std::is_same_v<T, Celsius_t>
-                || std::is_same_v<T, Fahrenheit_t>
-                || std::is_same_v<T, Kelvin_t>),
-    "Hey! Temperature scale MUST be one of the following types: \
-                \n\tCelsius_t\n\tFahrenheit_t \n\tKelvin_t");
-
     double result{0.0};
     SPIFrame_t responseFrame = {}; // Initialize to zeros.
     
@@ -453,15 +447,9 @@ double NuerteyLDESeriesDevice::ConvertTemperature(const int16_t& sensorData) con
     return (static_cast<double>(sensorData)/TEMPERATURE_SCALING_FACTOR);
 }
 
-template <typename T>
+template <IsTemperatureScaleType T>
 double NuerteyLDESeriesDevice::ConvertTemperature(const int16_t& sensorData) const
-{
-    static_assert((std::is_same_v<T, Celsius_t>
-                || std::is_same_v<T, Fahrenheit_t>
-                || std::is_same_v<T, Kelvin_t>),
-    "Hey! Temperature scale MUST be one of the following types: \
-                \n\tCelsius_t\n\tFahrenheit_t \n\tKelvin_t");
-                    
+{                   
     auto result = ConvertTemperature(sensorData);
                     
     if constexpr (std::is_same_v<T, Celsius_t>)
