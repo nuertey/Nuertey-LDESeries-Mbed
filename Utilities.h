@@ -454,6 +454,12 @@ namespace Utilities
         uint16_t partno = ((stats.cpu_id >> 4) & 0x0fff);
         uint8_t revno = (stats.cpu_id & 0x0f);
 
+        // Note that enabling heap statistics (effected in mbed_app.json)
+        // MAY expose a 'Memory out-of-bound access' vulnerability due
+        // to integer overflow. Hence it is NOT recommended that you 
+        // enable in production software. Fixed in Mbed OS 5.15.7 and 6.9. 
+        //
+        // https://os.mbed.com/blog/entry/Memory-out-of-bound-access-vulnerability/ 
         mbed_stats_heap_t heapStats;
         mbed_stats_heap_get(&heapStats);
 

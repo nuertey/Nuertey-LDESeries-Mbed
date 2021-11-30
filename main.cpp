@@ -47,7 +47,7 @@
 //
 // The use of pull-up resistors is generally unnecessary for SPI as most
 // master devices are configured for push-pull mode. If pull-up resistors
-// are required for use with 3 V LDE devices, howeer, they should be 
+// are required for use with 3 V LDE devices, however, they should be 
 // greater than 50 kW.
 //
 // ...
@@ -79,13 +79,41 @@
 // STM32 Pin: PD14
 // Signal   : SPI_A_CS/TIM_B_PWM3
 
-// TBD, use fake pins for now just to enable compilation.
+// TBD, do actually connect these pins to the sensor once it arrives.
 //
 //        PinName mosi
 //        PinName miso
 //        PinName sclk
 //        PinName ssel
 NuerteyLDESeriesDevice g_LDESeriesDevice(D11, D12, D13, D10); 
+
+// TBD Nuertey Odzeyem; FYI: Innovations for future usage:
+
+// "The current pin name feature is focused on two specific areas:
+// 
+// General pin names
+// This defines the usage of LEDs, Buttons, and UART as an interface to
+// the PC. All boards are expected to be compliant with this. 
+// 
+// Arduino Uno connector
+// This is a very popular connector that facilitates extending Mbed 
+// boards with components. The standard helps to identify boards that
+// have a connector compliant with the physical requirements as well as
+// the required MCU signals available on it (e.g. Digital input, output,
+// ADC, I2C, SPI, UART). Boards that include a definition of the legacy
+// Arduino connector in targets.json are expected to be reviewed, 
+// migrated and tested accordingly, and eventually indicate this using
+// the “ARDUINO_UNO” field. 
+// 
+// For example in the past, a SPI driver was initialised using:
+// 
+// SPI spi(D11, D12, D13); // mosi, miso, sclk
+//
+// Now when using the signals on the Arduino Uno connector:
+//
+// SPI spi(ARDUINO_UNO_SPI_MOSI, ARDUINO_UNO_SPI_MISO, ARDUINO_UNO_SPI_SCK); "
+
+// https://os.mbed.com/blog/entry/Improved-Pin-names-for-Mbed-boards/
         
 // As per my ARM NUCLEO-F767ZI specs:        
 DigitalOut        g_LEDGreen(LED1);
@@ -121,11 +149,37 @@ int main()
 
         // Poll and query temperature and pressure measurements from LDE
         // sensor part number, LDES250BF6S, for example:
-        printf("%s Pa\n\n", TruncateAndToString<double>(g_LDESeriesDevice.GetPressure<LDE_S250_B_t>()).c_str());
+        printf("True differential pressure as measured in a Dry Air atmosphere:\n\t->%s Pa\n\n", 
+            TruncateAndToString<double>(
+            g_LDESeriesDevice.GetPressure<LDE_S250_B_t, DryAirAtmosphere_t>()).c_str());
+
+        printf("True differential pressure as measured in an Oxygen Gas atmosphere (O2):\n\t-> %s Pa\n\n", 
+            TruncateAndToString<double>(
+            g_LDESeriesDevice.GetPressure<LDE_S250_B_t, OxygenGasAtmosphere_t>()).c_str());
+            
+        printf("True differential pressure as measured in a Nitrogen Gas atmosphere (N2):\n\t-> %s Pa\n\n", 
+            TruncateAndToString<double>(
+            g_LDESeriesDevice.GetPressure<LDE_S250_B_t, NitrogenGasAtmosphere_t>()).c_str());
+            
+        printf("True differential pressure as measured in an Argon Gas atmosphere (Ar):\n\t-> %s Pa\n\n", 
+            TruncateAndToString<double>(
+            g_LDESeriesDevice.GetPressure<LDE_S250_B_t, ArgonGasAtmosphere_t>()).c_str());
+            
+        printf("True differential pressure as measured in a Carbon Dioxide atmosphere (CO2):\n\t-> %s Pa\n\n", 
+            TruncateAndToString<double>(
+            g_LDESeriesDevice.GetPressure<LDE_S250_B_t, CarbonDioxideAtmosphere_t>()).c_str());
         
-        printf("%s °C\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Celsius_t>()).c_str());
-        printf("%s °F\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Fahrenheit_t>()).c_str());
-        printf("%s K\n",  TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Kelvin_t>()).c_str());
+        printf("On-chip temperature sensor:\n\t-> %s °C\n", 
+            TruncateAndToString<double>(
+            g_LDESeriesDevice.GetTemperature<Celsius_t>()).c_str());
+        
+        printf("On-chip temperature sensor:\n\t-> %s °F\n", 
+            TruncateAndToString<double>(
+            g_LDESeriesDevice.GetTemperature<Fahrenheit_t>()).c_str());
+        
+        printf("On-chip temperature sensor:\n\t-> %s K\n",  
+            TruncateAndToString<double>(
+            g_LDESeriesDevice.GetTemperature<Kelvin_t>()).c_str());
 
         // Allow the user the chance to view the results:
         ThisThread::sleep_for(5s);

@@ -121,8 +121,8 @@
 //
 // ...
 //
-// (6) For example with a LDES500... sensor measuring CO2 gas, at full-scale output
-// the actual pressure will be:
+// (6) For example with a LDES500... sensor measuring CO2 gas, at 
+// full-scale output the actual pressure will be:
 //
 // ΔPeff = ΔPSensor x gas correction factor = 500 Pa x 0.56 = 280 Pa
 //
@@ -212,7 +212,14 @@ class NuerteyLDESeriesDevice
     static constexpr uint32_t DEFAULT_FREQUENCY = 5000000;
     
 public:
-    // \" 3-wire SPI connection is not supported. \"
+    // Note that 3-wire SPI connection is not supported.
+    //
+    // \" Note: it is important to adhere to the communication protocol
+    // in order to avoid damage to the sensor. \"
+    
+    // \" The LDE serial interface is a high-speed synchronous data input 
+    // and output communication port. The serial interface operates using 
+    // a standard 4-wire SPI bus. \"
     NuerteyLDESeriesDevice(
         PinName mosi,
         PinName miso,
@@ -228,7 +235,7 @@ public:
 
     virtual ~NuerteyLDESeriesDevice();
 
-    template <IsLDESeriesSensorType S>
+    template <IsLDESeriesSensorType S, IsAtmosphericMediumType A>
     double GetPressure();
         
     template <IsTemperatureScaleType T>
@@ -242,7 +249,7 @@ public:
 protected:
     bool FullDuplexTransfer(const SPIFrame_t& cBuffer, SPIFrame_t& rBuffer);
     
-    template <IsLDESeriesSensorType S>
+    template <IsLDESeriesSensorType S, IsAtmosphericMediumType A>
     double ConvertPressure(const int16_t& sensorData) const;
     
     double ConvertTemperature(const int16_t& sensorData) const;    
@@ -293,7 +300,7 @@ NuerteyLDESeriesDevice::~NuerteyLDESeriesDevice()
 {
 }
 
-template <IsLDESeriesSensorType S>
+template <IsLDESeriesSensorType S, IsAtmosphericMediumType A>
 double NuerteyLDESeriesDevice::GetPressure()
 {
     double result{0.0};
@@ -310,7 +317,7 @@ double NuerteyLDESeriesDevice::GetPressure()
     if (status)
     {
         auto sensorData = Deserialize(responseFrame);
-        result = ConvertPressure<S>(sensorData);
+        result = ConvertPressure<S, A>(sensorData);
     }
     else
     {
@@ -397,11 +404,24 @@ bool NuerteyLDESeriesDevice::FullDuplexTransfer(const SPIFrame_t& cBuffer,
     return result;
 }
 
-template <IsLDESeriesSensorType S>
+template <IsLDESeriesSensorType S, IsAtmosphericMediumType A>
 double NuerteyLDESeriesDevice::ConvertPressure(const int16_t& sensorData) const
 {
+    double result{0.0};
+    
     // Convert 2's complement to Pascals.
-    return (static_cast<double>(sensorData)/ScalingFactorMap<S>::VALUE);
+    result = static_cast<double>(sensorData)/ScalingFactorMap<S>::VALUE;
+
+    // \" (6) For example with a LDES500... sensor measuring CO2 gas, at 
+    // full-scale output the actual pressure will be:
+    //
+    // ΔPeff = ΔPSensor x gas correction factor = 500 Pa x 0.56 = 280 Pa
+    //
+    // ΔPeff = True differential pressure
+    // ΔP Sensor= Differential pressure as indicated by output signal \"    
+    result = result * GasCorrectionFactor<A>::value;
+    
+    return result;
 }
 
 double NuerteyLDESeriesDevice::ConvertTemperature(const int16_t& sensorData) const

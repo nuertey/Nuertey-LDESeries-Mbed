@@ -127,6 +127,8 @@ mbed-os (#2eb06e762085, tags: mbed-os-6.15.1, mbed-os-6.15.1-rc1)
 
 ```console
 ...
+Compile [ 99.9%]: mbed_crc_api.c
+Compile [100.0%]: stm32f7xx_hal_smbus.c
 Compile [100.0%]: gpio_api.c
 Link: Nuertey-LDESeries-Mbed
 Elf2Bin: Nuertey-LDESeries-Mbed
@@ -134,25 +136,25 @@ Elf2Bin: Nuertey-LDESeries-Mbed
 |----------------------|-----------------|-------------|---------------|
 | NuerteyNTPClient.o   |     4042(+4042) |       4(+4) |     101(+101) |
 | Utilities.o          |     9592(+9592) |       4(+4) |     449(+449) |
-| [fill]               |       284(+284) |     21(+21) |       74(+74) |
-| [lib]/c.a            |   82560(+82560) | 2574(+2574) |       97(+97) |
+| [fill]               |       308(+308) |     21(+21) |       82(+82) |
+| [lib]/c.a            |   81456(+81456) | 2574(+2574) |       97(+97) |
 | [lib]/gcc.a          |     7416(+7416) |       0(+0) |         0(+0) |
 | [lib]/m.a            |       264(+264) |       0(+0) |         0(+0) |
 | [lib]/misc           |       188(+188) |       4(+4) |       28(+28) |
 | [lib]/nosys.a        |         32(+32) |       0(+0) |         0(+0) |
 | [lib]/stdc++.a       | 174244(+174244) |   145(+145) |   5720(+5720) |
-| main.o               |     3338(+3338) |       4(+4) |     261(+261) |
+| main.o               |     3726(+3726) |       4(+4) |     261(+261) |
 | mbed-os/cmsis        |     9890(+9890) |   168(+168) | 14400(+14400) |
-| mbed-os/connectivity |   53284(+53284) |   103(+103) | 23535(+23535) |
+| mbed-os/connectivity |   54186(+54186) |   103(+103) | 24059(+24059) |
 | mbed-os/drivers      |     1146(+1146) |       0(+0) |   1852(+1852) |
 | mbed-os/events       |     1776(+1776) |       0(+0) |   3104(+3104) |
 | mbed-os/hal          |     1528(+1528) |       8(+8) |     114(+114) |
-| mbed-os/platform     |     6676(+6676) |   340(+340) |     425(+425) |
-| mbed-os/rtos         |     1276(+1276) |       0(+0) |         8(+8) |
+| mbed-os/platform     |     7166(+7166) |   340(+340) |     493(+493) |
+| mbed-os/rtos         |     1280(+1280) |       0(+0) |         8(+8) |
 | mbed-os/targets      |   17476(+17476) |       9(+9) |   1352(+1352) |
-| Subtotals            | 375012(+375012) | 3384(+3384) | 51520(+51520) |
-Total Static RAM memory (data + bss): 54904(+54904) bytes
-Total Flash memory (text + data): 378396(+378396) bytes
+| Subtotals            | 375716(+375716) | 3384(+3384) | 52120(+52120) |
+Total Static RAM memory (data + bss): 55504(+55504) bytes
+Total Flash memory (text + data): 379100(+379100) bytes
 
 Image: ./BUILD/NUCLEO_F767ZI/GCC_ARM-MY_PROFILE/Nuertey-LDESeries-Mbed.bin
 

@@ -81,10 +81,34 @@ concept IsLDESeriesSensorType = (std::is_same_v<S, LDE_S025_U_t>
                               || std::is_same_v<S, LDE_S250_B_t>
                               || std::is_same_v<S, LDE_S500_B_t>);
 
+// \" Gas correction factors (6)
+//
+// Gas type                Correction factor
+//
+// Dry air                 1.0
+// Oxygen (O2)             1.07
+// Nitrogen (N2)           0.97
+// Argon (Ar)              0.98
+// Carbon dioxide (CO2)    0.56               \"
+
+// Metaprogramming types to distinguish atmospheric medium types:
+struct DryAirAtmosphere_t        {};
+struct OxygenGasAtmosphere_t     {};
+struct NitrogenGasAtmosphere_t   {};
+struct ArgonGasAtmosphere_t      {};
+struct CarbonDioxideAtmosphere_t {};
+
+template<typename T>
+concept IsAtmosphericMediumType = (std::is_same_v<T, DryAirAtmosphere_t>
+                                || std::is_same_v<T, OxygenGasAtmosphere_t>
+                                || std::is_same_v<T, NitrogenGasAtmosphere_t>
+                                || std::is_same_v<T, ArgonGasAtmosphere_t>
+                                || std::is_same_v<T, CarbonDioxideAtmosphere_t>);
+
 // Metaprogramming types to distinguish sensor temperature scales:
-struct Celsius_t {};
+struct Celsius_t    {};
 struct Fahrenheit_t {};
-struct Kelvin_t {};
+struct Kelvin_t     {};
 
 template<typename T>
 concept IsTemperatureScaleType = (std::is_same_v<T, Celsius_t>
@@ -150,17 +174,31 @@ namespace ProtocolDefinitions
                                                               
     template <>                                               
     const double ScalingFactorMap<LDE_S500_B_t>::VALUE =   60.0;
-            
-    // Concept usage within a constexpr conditional statement:                      
-    template <IsLDESeriesSensorType S>
-    constexpr auto GetScalingFactor()
-    {
-        constexpr auto LDE_SERIES_SCALING_FACTOR = ScalingFactorMap<S>::VALUE;        
-        return LDE_SERIES_SCALING_FACTOR;
-    }
     
     // \" Scale factor TS = 95 counts/°C \"
     constexpr double TEMPERATURE_SCALING_FACTOR = 95.0; 
+
+    // \" Gas correction factors (6) \"    
+    template <IsAtmosphericMediumType A>
+    struct GasCorrectionFactor { static const double value; };
+    
+    template <IsAtmosphericMediumType A>
+    const double GasCorrectionFactor<A>::value = 0.0;
+    
+    template <>
+    const double GasCorrectionFactor<DryAirAtmosphere_t>::value = 1.0;
+                                                                       
+    template <>                                                        
+    const double GasCorrectionFactor<OxygenGasAtmosphere_t>::value = 1.07;
+                                                                       
+    template <>                                                        
+    const double GasCorrectionFactor<NitrogenGasAtmosphere_t>::value = 0.97;
+                                                                       
+    template <>                                                        
+    const double GasCorrectionFactor<ArgonGasAtmosphere_t>::value = 0.98;
+                                                              
+    template <>                                               
+    const double GasCorrectionFactor<CarbonDioxideAtmosphere_t>::value = 0.56;
     
     // \"
     // Data read – pressure
@@ -183,8 +221,8 @@ namespace ProtocolDefinitions
     // sequence:
     // \"
     constexpr int POLL_CURRENT_TEMPERATURE_MEASUREMENT{0x2A};
-    //constexpr int SEND_RESULT_TO_DATA_REGISTER      {0x14};
-    //constexpr int READ_DATA_REGISTER                {0x98};
+    // constexpr int SEND_RESULT_TO_DATA_REGISTER     {0x14};
+    // constexpr int READ_DATA_REGISTER               {0x98};
 
     // \"
     // The entire 16 bit content of the LDE register is then read out on
