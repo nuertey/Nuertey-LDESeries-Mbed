@@ -2,9 +2,9 @@
 * @file      main.cpp
 *
 *    An ARM Mbed application that illustrates how a NUCLEO-F767ZI can be 
-*    connected to a Murata SCL3300 Inclinometer Sensor Device.
+*    connected to a First Sensor LDE Series low pressure sensor device. 
 *
-* @brief   Test Murata SCL3300 Inclinometer Sensor Device.
+* @brief   Test First Sensor LDE Series low pressure sensor device.
 * 
 * @note    
 *
