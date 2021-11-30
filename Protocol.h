@@ -102,11 +102,11 @@ constexpr size_t NUMBER_OF_BITS = 8;
 constexpr auto   NUMBER_OF_SPI_FRAME_BYTES = 2;
 
 // Convenience aliases:
-using SPIFrame_t = std::array<unsigned char, NUMBER_OF_SPI_FRAME_BYTES>;
+using SPIFrame_t = std::array<char, NUMBER_OF_SPI_FRAME_BYTES>;
 
 template<typename T>
 concept IsLDESeriesSPIFrameType = ((std::is_integral_v<T> && (sizeof(T) == 1))
-                                || TrueTypesEquivalent_v<T, SPIFrame_t>);
+                                 || std::is_same_v<T, SPIFrame_t>);
                               
 namespace ProtocolDefinitions
 {        
@@ -114,42 +114,42 @@ namespace ProtocolDefinitions
     // statically generated at compile-time hence useable in constexpr
     // contexts.    
     template <typename S>
-    struct ScalingFactorMap { static constexpr double VALUE; };
+    struct ScalingFactorMap { static const double VALUE; };
     
     template <typename S>
-    constexpr double ScalingFactorMap<S>::VALUE = 0.0; // Default static object initialization.
+    const double ScalingFactorMap<S>::VALUE = 0.0;
     
     // Partial template specializations mimics core 'map' functionality.
     // Good and quiet thought makes programming fun and creative :).
     template <>
-    constexpr double ScalingFactorMap<LDE_S025_U_t>::VALUE = 1200.0;
+    const double ScalingFactorMap<LDE_S025_U_t>::VALUE = 1200.0;
                                                               
     template <>                                               
-    constexpr double ScalingFactorMap<LDE_S050_U_t>::VALUE =  600.0;
+    const double ScalingFactorMap<LDE_S050_U_t>::VALUE =  600.0;
                                                               
     template <>                                               
-    constexpr double ScalingFactorMap<LDE_S100_U_t>::VALUE =  300.0;
+    const double ScalingFactorMap<LDE_S100_U_t>::VALUE =  300.0;
                                                               
     template <>                                               
-    constexpr double ScalingFactorMap<LDE_S250_U_t>::VALUE =  120.0;
+    const double ScalingFactorMap<LDE_S250_U_t>::VALUE =  120.0;
                                                               
     template <>                                               
-    constexpr double ScalingFactorMap<LDE_S500_U_t>::VALUE =   60.0;
+    const double ScalingFactorMap<LDE_S500_U_t>::VALUE =   60.0;
     
     template <>
-    constexpr double ScalingFactorMap<LDE_S025_B_t>::VALUE = 1200.0;
+    const double ScalingFactorMap<LDE_S025_B_t>::VALUE = 1200.0;
 
     template <>
-    constexpr double ScalingFactorMap<LDE_S050_B_t>::VALUE =  600.0;
+    const double ScalingFactorMap<LDE_S050_B_t>::VALUE =  600.0;
                                                               
     template <>                                               
-    constexpr double ScalingFactorMap<LDE_S100_B_t>::VALUE =  300.0;
+    const double ScalingFactorMap<LDE_S100_B_t>::VALUE =  300.0;
                                                               
     template <>                                               
-    constexpr double ScalingFactorMap<LDE_S250_B_t>::VALUE =  120.0;
+    const double ScalingFactorMap<LDE_S250_B_t>::VALUE =  120.0;
                                                               
     template <>                                               
-    constexpr double ScalingFactorMap<LDE_S500_B_t>::VALUE =   60.0;
+    const double ScalingFactorMap<LDE_S500_B_t>::VALUE =   60.0;
             
     // Concept usage within a constexpr conditional statement:                      
     template <IsLDESeriesSensorType S>
@@ -170,9 +170,9 @@ namespace ProtocolDefinitions
     // bytes must be written sequentially, MSB first, to the MOSI pin (see
     // Figure 5):
     // \"
-    constexpr uint8_t POLL_CURRENT_PRESSURE_MEASUREMENT{0x2D};
-    constexpr uint8_t SEND_RESULT_TO_DATA_REGISTER     {0x14};
-    constexpr uint8_t READ_DATA_REGISTER               {0x98};
+    constexpr int POLL_CURRENT_PRESSURE_MEASUREMENT{0x2D};
+    constexpr int SEND_RESULT_TO_DATA_REGISTER     {0x14};
+    constexpr int READ_DATA_REGISTER               {0x98};
 
     // \"
     // Data read – temperature
@@ -182,9 +182,9 @@ namespace ProtocolDefinitions
     // in two’s complement format. To read temperature, use the following
     // sequence:
     // \"
-    constexpr uint8_t POLL_CURRENT_TEMPERATURE_MEASUREMENT{0x2A};
-    //constexpr uint8_t SEND_RESULT_TO_DATA_REGISTER      {0x14};
-    //constexpr uint8_t READ_DATA_REGISTER                {0x98};
+    constexpr int POLL_CURRENT_TEMPERATURE_MEASUREMENT{0x2A};
+    //constexpr int SEND_RESULT_TO_DATA_REGISTER      {0x14};
+    //constexpr int READ_DATA_REGISTER                {0x98};
 
     // \"
     // The entire 16 bit content of the LDE register is then read out on
@@ -193,13 +193,13 @@ namespace ProtocolDefinitions
     // held at zero for internal signal processing purposes. This is 
     // below the noise threshold of the sensor and thus its fixed value
     // does not affect sensor performance and accuracy. \"
-    constexpr uint8_t    LDE_SERIES_SPI_DUMMY_BYTE {0x00};
+    constexpr char       LDE_SERIES_SPI_DUMMY_BYTE {0x00};
     constexpr SPIFrame_t LDE_SERIES_SPI_DUMMY_FRAME{0x00, 0x00};
 
     template <IsLDESeriesSPIFrameType T>
     inline void DisplaySPIFrame(const T& frame)
     {        
-        if constexpr(TrueTypesEquivalent_v<T, SPIFrame_t>)
+        if constexpr(std::is_same_v<T, SPIFrame_t>)
         {
             if (!frame.empty())
             {

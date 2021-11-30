@@ -229,10 +229,10 @@ public:
     virtual ~NuerteyLDESeriesDevice();
 
     template <IsLDESeriesSensorType S>
-    double GetPressure() const;
+    double GetPressure();
         
     template <IsTemperatureScaleType T>
-    double GetTemperature() const;
+    double GetTemperature();
         
     uint8_t  GetMode() const { return m_Mode; }
     uint8_t  GetByteOrder() const { return m_ByteOrder; }
@@ -285,41 +285,8 @@ NuerteyLDESeriesDevice::NuerteyLDESeriesDevice(PinName mosi,
     
     // By default, the SPI bus is configured at the Mbed layer with 
     // format set to 8-bits, mode 0, and a clock frequency of 1MHz.
-
-    // /** Configure the data transmission format.
-    //  *
-    //  *  @param bits Number of bits per SPI frame (4 - 32, target dependent).
-    //  *  @param mode Clock polarity and phase mode (0 - 3).
-    //  *
-    //  * @code
-    //  * mode | POL PHA
-    //  * -----+--------
-    //  *   0  |  0   0
-    //  *   1  |  0   1
-    //  *   2  |  1   0
-    //  *   3  |  1   1
-    //  * @endcode
-    //  */
-    // void format(int bits, int mode = 0);
-    // 
-    // /** Set the SPI bus clock frequency.
-    //  *
-    //  *  @param hz Clock frequency in Hz (default = 1MHz).
-    //  */
-    // void frequency(int hz = 1000000);
     m_TheSPIBus.format(m_BitsPerWord, m_Mode);
     m_TheSPIBus.frequency(m_Frequency);
-    
-    // /** Set default write data.
-    // * SPI requires the master to send some data during a read operation.
-    // * Different devices may require different default byte values.
-    // * For example: A SD Card requires default bytes to be 0xFF.
-    // *
-    // * @param data Default character to be transmitted during a read operation.
-    // */
-    // void set_default_write_value(char data);
-    
-    set_default_write_value(reinterpret_cast<char>(LDE_SERIES_SPI_DUMMY_BYTE));
 }
 
 NuerteyLDESeriesDevice::~NuerteyLDESeriesDevice()
@@ -327,7 +294,7 @@ NuerteyLDESeriesDevice::~NuerteyLDESeriesDevice()
 }
 
 template <IsLDESeriesSensorType S>
-double NuerteyLDESeriesDevice::GetPressure() const
+double NuerteyLDESeriesDevice::GetPressure()
 {
     double result{0.0};
     SPIFrame_t responseFrame = {}; // Initialize to zeros.
@@ -356,7 +323,7 @@ double NuerteyLDESeriesDevice::GetPressure() const
 }
 
 template <IsTemperatureScaleType T>
-double NuerteyLDESeriesDevice::GetTemperature() const
+double NuerteyLDESeriesDevice::GetTemperature()
 {
     double result{0.0};
     SPIFrame_t responseFrame = {}; // Initialize to zeros.

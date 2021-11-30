@@ -185,6 +185,22 @@ inline std::string ToString(const nsapi_size_or_error_t & key)
     return (gs_ErrorCodesMap.at(key));
 }
     
+template <typename T, typename U>
+struct TrueTypesEquivalent : std::is_same<typename std::decay_t<T>, U>::type
+{};
+
+template <typename E>
+constexpr auto ToUnderlyingType(E e) -> typename std::underlying_type<E>::type
+{
+    return static_cast<typename std::underlying_type<E>::type>(e);
+}
+
+template <typename E, typename V = unsigned long>
+constexpr auto ToEnum(V value) -> E
+{
+    return static_cast<E>(value);
+}
+    
 namespace Utilities
 {
     extern std::string                      g_NetworkInterfaceInfo;
@@ -213,22 +229,6 @@ namespace Utilities
     void NetworkDisconnectQuery();
     bool InitializeGlobalResources();
     void ReleaseGlobalResources();
-
-    template <typename T, typename U>
-    struct TrueTypesEquivalent_v : std::is_same<typename std::decay_t<T>, U>::value
-    {};
-
-    template <typename E>
-    constexpr auto ToUnderlyingType(E e) -> typename std::underlying_type<E>::type
-    {
-        return static_cast<typename std::underlying_type<E>::type>(e);
-    }
-
-    template <typename E, typename V = unsigned long>
-    constexpr auto ToEnum(V value) -> E
-    {
-        return static_cast<E>(value);
-    }
 
     // This custom clock type obtains the time from RTC too whilst noting the Processor speed.
     struct NucleoF767ZIClock_t

@@ -127,31 +127,21 @@ mbed-os (#2eb06e762085, tags: mbed-os-6.15.1, mbed-os-6.15.1-rc1)
 
 ```console
 ...
-Compile [ 99.8%]: MBRBlockDevice.cpp
-[Warning] mpu_armv7.h@196,14: compound assignment with 'volatile'-qualified left operand is deprecated [-Wvolatile]
-[Warning] mpu_armv7.h@208,14: compound assignment with 'volatile'-qualified left operand is deprecated [-Wvolatile]
-[Warning] mpu_armv7.h@210,14: compound assignment with 'volatile'-qualified left operand is deprecated [-Wvolatile]
-[Warning] cachel1_armv7.h@67,14: compound assignment with 'volatile'-qualified left operand is deprecated [-Wvolatile]
-[Warning] cachel1_armv7.h@83,14: compound assignment with 'volatile'-qualified left operand is deprecated [-Wvolatile]
-[Warning] cachel1_armv7.h@169,14: compound assignment with 'volatile'-qualified left operand is deprecated [-Wvolatile]
-[Warning] cachel1_armv7.h@191,14: compound assignment with 'volatile'-qualified left operand is deprecated [-Wvolatile]
-Compile [ 99.9%]: hal_tick_overrides.c
-Compile [100.0%]: stm32f7xx_hal_pcd_ex.c
-Link: Nuertey-SCL3300-Mbed
-Elf2Bin: Nuertey-SCL3300-Mbed
-
+Compile [100.0%]: gpio_api.c
+Link: Nuertey-LDESeries-Mbed
+Elf2Bin: Nuertey-LDESeries-Mbed
 | Module               |           .text |       .data |          .bss |
 |----------------------|-----------------|-------------|---------------|
 | NuerteyNTPClient.o   |     4042(+4042) |       4(+4) |     101(+101) |
 | Utilities.o          |     9592(+9592) |       4(+4) |     449(+449) |
-| [fill]               |       314(+314) |     22(+22) |       78(+78) |
+| [fill]               |       284(+284) |     21(+21) |       74(+74) |
 | [lib]/c.a            |   82560(+82560) | 2574(+2574) |       97(+97) |
 | [lib]/gcc.a          |     7416(+7416) |       0(+0) |         0(+0) |
-| [lib]/m.a            |     4040(+4040) |       0(+0) |         0(+0) |
+| [lib]/m.a            |       264(+264) |       0(+0) |         0(+0) |
 | [lib]/misc           |       188(+188) |       4(+4) |       28(+28) |
 | [lib]/nosys.a        |         32(+32) |       0(+0) |         0(+0) |
-| [lib]/stdc++.a       | 174312(+174312) |   145(+145) |   5720(+5720) |
-| main.o               |   15720(+15720) |     11(+11) |     713(+713) |
+| [lib]/stdc++.a       | 174244(+174244) |   145(+145) |   5720(+5720) |
+| main.o               |     3338(+3338) |       4(+4) |     261(+261) |
 | mbed-os/cmsis        |     9890(+9890) |   168(+168) | 14400(+14400) |
 | mbed-os/connectivity |   53284(+53284) |   103(+103) | 23535(+23535) |
 | mbed-os/drivers      |     1146(+1146) |       0(+0) |   1852(+1852) |
@@ -160,11 +150,12 @@ Elf2Bin: Nuertey-SCL3300-Mbed
 | mbed-os/platform     |     6676(+6676) |   340(+340) |     425(+425) |
 | mbed-os/rtos         |     1276(+1276) |       0(+0) |         8(+8) |
 | mbed-os/targets      |   17476(+17476) |       9(+9) |   1352(+1352) |
-| Subtotals            | 391268(+391268) | 3392(+3392) | 51976(+51976) |
-Total Static RAM memory (data + bss): 55368(+55368) bytes
-Total Flash memory (text + data): 394660(+394660) bytes
+| Subtotals            | 375012(+375012) | 3384(+3384) | 51520(+51520) |
+Total Static RAM memory (data + bss): 54904(+54904) bytes
+Total Flash memory (text + data): 378396(+378396) bytes
 
-Image: ./BUILD/NUCLEO_F767ZI/GCC_ARM-MY_PROFILE/Nuertey-SCL3300-Mbed.bin
+Image: ./BUILD/NUCLEO_F767ZI/GCC_ARM-MY_PROFILE/Nuertey-LDESeries-Mbed.bin
+
 ```
 
 ## Tested Target (and Peripheral):
