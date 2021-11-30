@@ -123,9 +123,9 @@ int main()
         // sensor part number, LDES250BF6S, for example:
         printf("%s Pa\n\n", TruncateAndToString<double>(g_LDESeriesDevice.GetPressure<LDE_S250_B_t>()).c_str());
         
-        printf("%s °C\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<LDE_S250_B_t, Celsius_t>()).c_str());
-        printf("%s °F\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<LDE_S250_B_t, Fahrenheit_t>()).c_str());
-        printf("%s K\n",  TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<LDE_S250_B_t, Kelvin_t>()).c_str());
+        printf("%s °C\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Celsius_t>()).c_str());
+        printf("%s °F\n", TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Fahrenheit_t>()).c_str());
+        printf("%s K\n",  TruncateAndToString<double>(g_LDESeriesDevice.GetTemperature<Kelvin_t>()).c_str());
 
         // Allow the user the chance to view the results:
         ThisThread::sleep_for(5s);

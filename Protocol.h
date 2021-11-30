@@ -81,6 +81,11 @@ concept IsLDESeriesSensorType = (std::is_same_v<S, LDE_S025_U_t>
                               || std::is_same_v<S, LDE_S250_B_t>
                               || std::is_same_v<S, LDE_S500_B_t>);
 
+// Metaprogramming types to distinguish sensor temperature scales:
+struct Celsius_t {};
+struct Fahrenheit_t {};
+struct Kelvin_t {};
+
 // \" The LDE serial interface is a high-speed synchronous data input 
 // and output communication port. The serial interface operates using 
 // a standard 4-wire SPI bus. \"
@@ -148,6 +153,9 @@ namespace ProtocolDefinitions
         constexpr auto LDE_SERIES_SCALING_FACTOR = ScalingFactorMap<S>::VALUE;        
         return LDE_SERIES_SCALING_FACTOR;
     }
+    
+    // \" Scale factor TS = 95 counts/°C \"
+    constexpr double TEMPERATURE_SCALING_FACTOR = 95.0; 
     
     // \"
     // Data read – pressure
@@ -220,7 +228,8 @@ namespace ProtocolDefinitions
     {
         // \" (10) The digital output signal is a signed, two complement
         // integer. Negative pressures will result in a negative output. \"
-        int16_t sensorData = ((frame.at(1) << 8) | frame.at(2));
+        int16_t sensorData = (static_cast<int16_t>(frame.at(1) << 8) 
+                            | static_cast<int16_t>(frame.at(2)));
 
         return sensorData;
     }

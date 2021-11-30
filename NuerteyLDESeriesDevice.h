@@ -231,7 +231,7 @@ public:
     template <IsLDESeriesSensorType S>
     double GetPressure() const;
         
-    template <IsLDESeriesSensorType S, typename T>
+    template <typename T>
     double GetTemperature() const;
         
     uint8_t  GetMode() const { return m_Mode; }
@@ -245,10 +245,9 @@ protected:
     template <IsLDESeriesSensorType S>
     double ConvertPressure(const int16_t& sensorData) const;
     
-    template <IsLDESeriesSensorType S>   
     double ConvertTemperature(const int16_t& sensorData) const;    
     
-    template <IsLDESeriesSensorType S, typename T>
+    template <typename T>
     double ConvertTemperature(const int16_t& sensorData) const;
     
 private:               
@@ -338,7 +337,8 @@ double NuerteyLDESeriesDevice::GetPressure() const
     m_TheSPIBus.write(SEND_RESULT_TO_DATA_REGISTER);
     m_TheSPIBus.write(READ_DATA_REGISTER);
     
-    auto status = FullDuplexTransfer(LDE_SERIES_SPI_DUMMY_FRAME, responseFrame);
+    auto status = FullDuplexTransfer(LDE_SERIES_SPI_DUMMY_FRAME, 
+                                     responseFrame);
     
     if (status)
     {
@@ -347,14 +347,15 @@ double NuerteyLDESeriesDevice::GetPressure() const
     }
     else
     {
-        printf("%s: Error! Failed to retrieve LDE sensor pressure measurement value.\n",
+        printf("[%s]: Error! Failed to retrieve LDE sensor pressure \
+            measurement value.\n",
             __PRETTY_FUNCTION__);
     }
     
     return result;
 }
 
-template <IsLDESeriesSensorType S, typename T>
+template <typename T>
 double NuerteyLDESeriesDevice::GetTemperature() const
 {
     static_assert((std::is_same_v<T, Celsius_t>
@@ -371,22 +372,22 @@ double NuerteyLDESeriesDevice::GetTemperature() const
     m_TheSPIBus.write(SEND_RESULT_TO_DATA_REGISTER);
     m_TheSPIBus.write(READ_DATA_REGISTER);
     
-    auto status = FullDuplexTransfer(LDE_SERIES_SPI_DUMMY_FRAME, responseFrame);
+    auto status = FullDuplexTransfer(LDE_SERIES_SPI_DUMMY_FRAME, 
+                                     responseFrame);
     
     if (status)
     {
         auto sensorData = Deserialize(responseFrame);
-        result = ConvertTemperature<S, T>(sensorData);
+        result = ConvertTemperature<T>(sensorData);
     }
     else
     {
-        printf("%s: Error! Failed to retrieve LDE sensor temperature measurement value.\n",
+        printf("[%s]: Error! Failed to retrieve LDE sensor temperature \
+            measurement value.\n",
             __PRETTY_FUNCTION__);
     }
     
     return result;
-                    
-    return ConvertTemperature<S, T>(sensorData);
 }
 
 bool NuerteyLDESeriesDevice::FullDuplexTransfer(const SPIFrame_t& cBuffer,
@@ -397,7 +398,7 @@ bool NuerteyLDESeriesDevice::FullDuplexTransfer(const SPIFrame_t& cBuffer,
     // Do not presume that the users of this OS-abstraction are well-behaved.
     rBuffer.fill(0);
 
-    // Enable to facilate runtime debugging:
+    // Enable to facilitate runtime debugging:
     //DisplayFrame(cBuffer);
 
     // Assert the Slave Select line, acquiring exclusive access to the
@@ -423,11 +424,12 @@ bool NuerteyLDESeriesDevice::FullDuplexTransfer(const SPIFrame_t& cBuffer,
     
     if (bytesWritten != cBuffer.size())
     {
-        printf("%s: Error! SPI Command Frame - Incorrect number of bytes transmitted\n",
+        printf("%s: Error! SPI Command Frame - Incorrect number of bytes \
+            transmitted\n",
             __PRETTY_FUNCTION__);
         result = false;
         
-        // Enable to facilate runtime debugging:
+        // Enable to facilitate runtime debugging:
         //DisplayFrame(rBuffer);
     } 
     
@@ -437,27 +439,21 @@ bool NuerteyLDESeriesDevice::FullDuplexTransfer(const SPIFrame_t& cBuffer,
 template <IsLDESeriesSensorType S>
 double NuerteyLDESeriesDevice::ConvertPressure(const int16_t& sensorData) const
 {
-    
+    // Convert 2's complement to Pascals.
+    return (static_cast<double>(sensorData)/ScalingFactorMap<S>::VALUE);
 }
 
-template <IsLDESeriesSensorType S>
 double NuerteyLDESeriesDevice::ConvertTemperature(const int16_t& sensorData) const
 {
-    double result{0.0};
-    
-    // \" Temperature is converted to °C with following equation:
-    // 
-    // Temperature [°C] = -273 + (TEMP / 18.9),
-    // 
-    // where TEMP is temperature sensor output register content in decimal format. \"
-    result = static_cast<double>(-273) 
-           + (static_cast<double>(sensorData) 
-            / static_cast<double>(18.9)); // Convert 2's complement to °C. 
-    
-    return result;
+    // In the absence of "TS0 is the sensor readout at known temperature
+    // T0 (13)", convert 2's complement to °C.
+    //
+    // \" (13) To be defined by user. The results show deviation (in °C)
+    // from the offset calibrated temperature. \"
+    return (static_cast<double>(sensorData)/TEMPERATURE_SCALING_FACTOR);
 }
 
-template <IsLDESeriesSensorType S, typename T>
+template <typename T>
 double NuerteyLDESeriesDevice::ConvertTemperature(const int16_t& sensorData) const
 {
     static_assert((std::is_same_v<T, Celsius_t>
@@ -466,7 +462,7 @@ double NuerteyLDESeriesDevice::ConvertTemperature(const int16_t& sensorData) con
     "Hey! Temperature scale MUST be one of the following types: \
                 \n\tCelsius_t\n\tFahrenheit_t \n\tKelvin_t");
                     
-    auto result = ConvertTemperature<S>(sensorData);
+    auto result = ConvertTemperature(sensorData);
                     
     if constexpr (std::is_same_v<T, Celsius_t>)
     { 
