@@ -47,7 +47,7 @@
 #include <string>
 #include <chrono>
 
-#include "picojson.h"
+#include "jwt-mbed.h"
 #include "nsapi_types.h"
 #include "EthernetInterface.h"
 #include "MQTTClient.h"
@@ -215,7 +215,7 @@ namespace Utilities
     void ReleaseGlobalResources();
 
     template <typename T, typename U>
-    struct TrueTypesEquivalent_v : std::is_same_v<typename std::decay_t<T>, U>
+    struct TrueTypesEquivalent_v : std::is_same<typename std::decay_t<T>, U>::value
     {};
 
     template <typename E>
