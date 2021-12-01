@@ -34,6 +34,16 @@
 #define LED_ON  1
 #define LED_OFF 0
 
+// \" 3.1 Simple point-to-point connection
+//
+// In the case of single LDE/LME 5 V devices (and LDE 3 V devices with a
+// microcontroller capable of driving the SPI bus with 2 mA per line),
+// the pins for the SPI bus may be directly connected between the sensor
+// and the microcontroller. No further external components are necessary.
+// The use of pull-up resistors is not recommended. \"
+//
+// https://www.first-sensor.com/cms/upload/appnotes/AN_LDE-LME-SPI-bus_E_11168.pdf
+
 // \" Specification notes (cont.)
 //
 // (17) For correct operation of LDE…3... devices, the device driving

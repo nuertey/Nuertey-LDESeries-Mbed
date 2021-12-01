@@ -305,6 +305,12 @@ double NuerteyLDESeriesDevice::GetPressure()
 {
     double result{0.0};
     SPIFrame_t responseFrame = {}; // Initialize to zeros.
+
+    // \" The flow of data to and from the LDE/LME device requires a 
+    // very specific sequence of events that are controlled by software
+    // running on the SPI master device. \"
+    //
+    // https://www.first-sensor.com/cms/upload/appnotes/AN_LDE-LME-SPI-bus_E_11168.pdf
     
     // Initiate pressure measurement data transfer from the device:
     m_TheSPIBus.write(POLL_CURRENT_PRESSURE_MEASUREMENT);
