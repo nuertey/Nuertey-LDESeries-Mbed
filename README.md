@@ -1,4 +1,4 @@
-# Nuertey-LDESeries-Mbed - Type-Driven SPI Framing Protocol For First Sensor LDE Series Low Pressure Sensor
+# Nuertey-LDESeries-Mbed - Type-Driven SPI Framing Protocol For First Sensor AG LDE Series Low Pressure Sensor
 
 This sensor driver is targetted for the ARM Mbed platform and encapsulates the digital SPI interface and accompanying protocol as presented by the LDE Series of digital low differential pressure sensors.
 
@@ -6,7 +6,7 @@ For ease of use, power, flexibility and readability of the code, the protocol ha
 
 A goal of the design is to encourage and promote zero-cost abstractions, even and especially so, in the embedded realms. Note that care has been taken to deduce and glean those abstractions from the problem-domain itself. And in the doing so, care has also been taken to shape the abstractions logically. 
 
-From its datasheet, the First Sensor LDE Series sensor is characterized as:
+From its datasheet, the First Sensor AG LDE Series sensor is characterized as:
 
 "The LDE differential low pressure sensors are based on thermal flow measurement of gas through a micro-flow channel integrated within the sensor chip. The innovative LDE technology features superior sensitivity especially for ultra low pressures. The extremely low gas flow through the sensor ensures high immunity to dust contamination, humidity and long tubing compared to other flow-based pressure sensors."
 

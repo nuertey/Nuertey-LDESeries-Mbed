@@ -2,9 +2,9 @@
 * @file      main.cpp
 *
 *    An ARM Mbed application that illustrates how a NUCLEO-F767ZI can be 
-*    connected to a First Sensor LDE Series low pressure sensor device. 
+*    connected to a First Sensor AG LDE Series low pressure sensor device. 
 *
-* @brief   Test First Sensor LDE Series low pressure sensor device.
+* @brief   Test First Sensor AG LDE Series low pressure sensor device.
 * 
 * @note    
 *

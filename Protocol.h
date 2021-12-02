@@ -1,8 +1,8 @@
 /***********************************************************************
 * @file      Protocol.h
 *
-*    Type-driven SPI framing protocol for the First Sensor LDE Series – 
-*    digital low differential pressure sensors.
+*    Type-driven SPI framing protocol for the First Sensor AG LDE Series
+*    – digital low differential pressure sensors.
 * 
 *    For ease of use, power, flexibility and readability of the code,  
 *    the protocol has been written in a modern C++ (C++20) 

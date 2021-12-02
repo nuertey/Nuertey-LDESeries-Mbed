@@ -6,7 +6,7 @@
 *    as presented by the LDE Series of digital low differential pressure
 *    sensors. 
 * 
-*    From its datasheet, the First Sensor LDE Series sensor is 
+*    From its datasheet, the First Sensor AG LDE Series sensor is 
 *    characterized as:
 * 
 *    "The LDE differential low pressure sensors are based on thermal flow
