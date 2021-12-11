@@ -410,15 +410,19 @@ namespace Utilities
     };
 
     template <typename T>
-    std::string IntegerToHex(T i)
+    std::string IntegerToHex(const T& i)
     {
         std::stringstream stream;
-        stream << std::showbase << std::setfill('0') << std::setw(sizeof(T)) << std::hex << std::uppercase << static_cast<T>(i);
+        stream << std::showbase << std::setfill('0') 
+               << std::setw(sizeof(T)*2) 
+               << std::hex 
+               << std::uppercase 
+               << i;
         return stream.str();
     }
 
     template <typename T>
-    std::string IntegerToDec(T i)
+    std::string IntegerToDec(const T& i)
     {
         std::stringstream stream;
         stream << std::dec << std::to_string(i);
