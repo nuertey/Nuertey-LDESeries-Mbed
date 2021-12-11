@@ -396,7 +396,7 @@ bool NuerteyLDESeriesDevice::FullDuplexTransfer(const SPIFrame_t& cBuffer,
     // write already internally deselects and mutex unlocks the SPI bus.
     //m_TheSPIBus.deselect();   
     
-    if (bytesWritten != cBuffer.size())
+    if (bytesWritten < cBuffer.size())
     {
         printf("%s: Error! SPI Command Frame - Incorrect number of bytes \
             transmitted\n",
