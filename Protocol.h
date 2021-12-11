@@ -271,8 +271,8 @@ namespace ProtocolDefinitions
     {
         // \" (10) The digital output signal is a signed, two complement
         // integer. Negative pressures will result in a negative output. \"
-        int16_t sensorData = (static_cast<int16_t>(frame.at(1) << 8) 
-                            | static_cast<int16_t>(frame.at(2)));
+        int16_t sensorData = (static_cast<int16_t>(frame.at(0) << 8) 
+                            | static_cast<int16_t>(frame.at(1)));
 
         return sensorData;
     }
