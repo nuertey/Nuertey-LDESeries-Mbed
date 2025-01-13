@@ -231,6 +231,10 @@ namespace Utilities
     void ReleaseGlobalResources();
 
     // This custom clock type obtains the time from RTC too whilst noting the Processor speed.
+    //
+    // The Nucleo F767ZI has a CPU speed of 216 MHz, but the system clock can be driven by an 
+    // internal or external oscillator, or the main PLL clock. The default system clock is driven 
+    // by the PLL clock at 72 MHz, which is driven by an 8 MHz external clock.
     struct NucleoF767ZIClock_t
     {
         using rep        = std::int64_t;
